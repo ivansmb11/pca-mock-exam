@@ -4,3 +4,24 @@ project_id = "pca-mock-exam"
 [functions.coach]
 # Require a valid Supabase JWT to invoke the coach function.
 verify_jwt = true
+
+[auth]
+# Where users land after auth, and which URLs are allowed as OAuth redirect targets.
+site_url = "https://pca-sage-one.vercel.app"
+additional_redirect_urls = [
+  "https://pca-sage-one.vercel.app",
+  "http://localhost:8765",
+]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false  # password sign-in works immediately (no email step)
+
+# Google OAuth — flip `enabled` to true and supply the credentials via env once
+# the Google OAuth client exists (never commit the secret):
+#   export SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+#   export SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=GOCSPX-...
+#   supabase config push
+[auth.external.google]
+enabled = false
+skip_nonce_check = false
