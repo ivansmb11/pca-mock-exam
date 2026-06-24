@@ -51,6 +51,27 @@ function setAuthMsg(msg, isErr = false) {
   el.textContent = msg;
   el.classList.toggle("err", isErr);
 }
+
+// Surface an auth-redirect error (e.g. allowlist rejection after Google sign-in)
+// that Supabase returns in the URL, then clean it from the address bar.
+(function showAuthRedirectError() {
+  let err = null;
+  for (const raw of [window.location.hash.slice(1), window.location.search.slice(1)]) {
+    if (!raw) continue;
+    const e = new URLSearchParams(raw).get("error_description") ||
+              new URLSearchParams(raw).get("error");
+    if (e) { err = e; break; }
+  }
+  if (!err) return;
+  const blocked = /not authorized|allowlist|saving new user|database error/i.test(err);
+  setAuthMsg(
+    blocked
+      ? "That email isn't on the allowlist for this app. Ask the owner to add you."
+      : decodeURIComponent(err.replace(/\+/g, " ")),
+    true,
+  );
+  history.replaceState(null, "", window.location.pathname);
+})();
 $("#emailForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = $("#emailInput").value.trim();
