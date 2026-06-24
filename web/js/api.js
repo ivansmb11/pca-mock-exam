@@ -1,5 +1,5 @@
 import axios from "https://esm.sh/axios@1.7.9";
-import { SUPABASE_URL } from "../config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 import { getAccessToken } from "./auth.js";
 
 // Calls the `coach` Edge Function. Returns { model, coaching, new_questions }.
@@ -15,6 +15,7 @@ export async function callCoach(attempt, history) {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          apikey: SUPABASE_ANON_KEY,
         },
         timeout: 120000, // coaching + question generation can take a while
       },
