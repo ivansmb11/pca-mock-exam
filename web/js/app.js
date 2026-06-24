@@ -229,7 +229,7 @@ function renderDomains(rows) {
     const col = p >= 0.7 ? "var(--green-500)" : p >= 0.5 ? "var(--gold-500)" : "var(--red-500)";
     const pill = p < 0.7 ? `<span class="weak-pill">Focus area</span>` : `<span class="strong-pill">Strong</span>`;
     return `<div class="domain-row">
-      <div class="domain-name">${o.topic}${pill}</div>
+      <div class="domain-name"><span class="dn-label">${o.topic}</span>${pill}</div>
       <div class="domain-bar"><span style="width:${o.pct}%;background:${col}"></span></div>
       <div class="domain-score">${o.correct}/${o.total} · ${o.pct}%</div>
     </div>`;
