@@ -1,0 +1,6 @@
+# Supabase project config. `project_id` is set on `supabase link`.
+project_id = "pca-mock-exam"
+
+[functions.coach]
+# Require a valid Supabase JWT to invoke the coach function.
+verify_jwt = true

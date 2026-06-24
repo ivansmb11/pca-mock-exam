@@ -1,0 +1,25 @@
+# Secrets — never commit
+.env
+.env.*
+*.local
+supabase/.env
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Vercel
+.vercel
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Claude Code local session config
+.claude/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

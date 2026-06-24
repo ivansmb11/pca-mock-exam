@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PCA Mock Exam — Google Cloud Professional Cloud Architect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blue-50:#EFF6FF; --blue-100:#DBEAFE; --blue-200:#BFDBFE; --blue-500:#3B82F6;
+    --blue-600:#2563EB; --blue-700:#1D4ED8;
+    --gold-400:#FBBF24; --gold-500:#F59E0B; --gold-600:#D97706;
+    --green-50:#ECFDF5; --green-500:#16A34A; --green-600:#15803D; --green-700:#166534;
+    --red-50:#FEF2F2; --red-500:#DC2626; --red-600:#B91C1C;
+    --amber-50:#FFFBEB;
+
+    --bg: #F4F7FC;
+    --surface: #FFFFFF;
+    --surface-2: #F8FAFD;
+    --fg: #0F172A;
+    --fg-muted: #475569;
+    --fg-subtle: #64748B;
+    --border: #E2E8F0;
+    --border-strong: #CBD5E1;
+    --primary: var(--blue-600);
+    --primary-hover: var(--blue-700);
+    --on-primary: #FFFFFF;
+    --accent: var(--gold-500);
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.07), 0 2px 4px rgba(15,23,42,.04);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,.12);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-lg: 20px;
+    --maxw: 1180px;
+  }
+  [data-theme="dark"] {
+    --bg:#0B1220; --surface:#131C2E; --surface-2:#0F1827; --fg:#E8EEF9;
+    --fg-muted:#9FB0CA; --fg-subtle:#7E91AE; --border:#243149; --border-strong:#33415C;
+    --primary:#3B82F6; --primary-hover:#60A5FA; --on-primary:#0B1220;
+    --green-50:#0E2A1E; --red-50:#2A1414; --amber-50:#2A2410; --blue-50:#10203B;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 4px 14px rgba(0,0,0,.45);
+    --shadow-lg:0 16px 40px rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    background: var(--bg); color: var(--fg);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    min-height:100dvh;
+  }
+  h1,h2,h3,h4 { font-family:'Lexend', sans-serif; line-height:1.25; margin:0; font-weight:600; letter-spacing:-.01em; }
+  button { font-family:inherit; cursor:pointer; }
+  :focus-visible { outline:3px solid var(--primary); outline-offset:2px; border-radius:6px; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* ---------- App shell ---------- */
+  .topbar {
+    position:sticky; top:0; z-index:40; background:var(--surface);
+    border-bottom:1px solid var(--border); box-shadow:var(--shadow-sm);
+  }
+  .topbar-inner {
+    max-width:var(--maxw); margin:0 auto; padding:12px 20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .brand { display:flex; align-items:center; gap:11px; min-width:0; }
+  .brand-logo {
+    width:38px; height:38px; border-radius:11px; flex:none;
+    background:linear-gradient(135deg, var(--blue-500), var(--blue-700));
+    display:grid; place-items:center; box-shadow:var(--shadow-sm);
+  }
+  .brand-text { min-width:0; }
+  .brand-text .t1 { font-family:'Lexend'; font-weight:600; font-size:15px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .brand-text .t2 { font-size:12px; color:var(--fg-subtle); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .topbar-spacer { flex:1; }
+
+  .icon-btn {
+    width:40px; height:40px; border-radius:11px; border:1px solid var(--border);
+    background:var(--surface); color:var(--fg-muted); display:grid; place-items:center;
+    transition:background .18s, color .18s, border-color .18s; flex:none;
+  }
+  .icon-btn:hover { background:var(--surface-2); color:var(--fg); border-color:var(--border-strong); }
+
+  /* Timer pill */
+  .timer-pill {
+    display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+    background:var(--blue-50); color:var(--primary); border:1px solid var(--blue-200);
+    font-family:'Lexend'; font-weight:600; font-size:15px;
+  }
+  .timer-pill.warn { background:var(--amber-50); color:var(--gold-600); border-color:var(--gold-400); }
+  .timer-pill.danger { background:var(--red-50); color:var(--red-500); border-color:var(--red-500); animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:24px 20px 96px; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    padding:13px 22px; border-radius:12px; border:1px solid transparent;
+    font-family:'Lexend'; font-weight:600; font-size:15px; min-height:48px;
+    transition:transform .12s, background .18s, box-shadow .18s, border-color .18s;
+  }
+  .btn:active { transform:translateY(1px) scale(.99); }
+  .btn-primary { background:var(--primary); color:var(--on-primary); box-shadow:var(--shadow-sm); }
+  .btn-primary:hover { background:var(--primary-hover); box-shadow:var(--shadow-md); }
+  .btn-ghost { background:var(--surface); color:var(--fg); border-color:var(--border-strong); }
+  .btn-ghost:hover { background:var(--surface-2); }
+  .btn-ghost:disabled { opacity:.45; cursor:not-allowed; }
+  .btn-accent { background:var(--accent); color:#3a2a05; box-shadow:var(--shadow-sm); }
+  .btn-accent:hover { filter:brightness(1.05); box-shadow:var(--shadow-md); }
+  .btn-lg { padding:16px 30px; font-size:16px; min-height:54px; }
+
+  /* ---------- Start screen ---------- */
+  .hero { max-width:760px; margin:14px auto 0; text-align:center; }
+  .badge-soft {
+    display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:999px;
+    background:var(--blue-50); color:var(--primary); border:1px solid var(--blue-200);
+    font-weight:600; font-size:13px; font-family:'Lexend'; margin-bottom:20px;
+  }
+  .hero h1 { font-size:clamp(28px, 5vw, 42px); font-weight:700; }
+  .hero p.lead { font-size:18px; color:var(--fg-muted); margin:16px auto 0; max-width:600px; }
+
+  .info-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-md); padding:28px; margin:32px auto 0; max-width:640px; text-align:left;
+  }
+  .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:6px; }
+  .stat {
+    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:16px 12px; text-align:center;
+  }
+  .stat .num { font-family:'Lexend'; font-weight:700; font-size:24px; color:var(--primary); line-height:1; }
+  .stat .lbl { font-size:12.5px; color:var(--fg-subtle); margin-top:6px; }
+
+  .opt-toggle-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .chk {
+    display:inline-flex; align-items:center; gap:10px; padding:11px 16px; border-radius:11px;
+    border:1px solid var(--border); background:var(--surface-2); font-weight:500; font-size:14.5px;
+    user-select:none; transition:border-color .18s, background .18s;
+  }
+  .chk:hover { border-color:var(--border-strong); }
+  .chk input { width:18px; height:18px; accent-color:var(--primary); cursor:pointer; }
+
+  .callout {
+    margin:24px auto 0; max-width:640px; display:flex; gap:13px; padding:16px 18px;
+    background:var(--amber-50); border:1px solid var(--gold-400); border-radius:var(--radius);
+    text-align:left; font-size:14.5px; color:var(--fg);
+  }
+  .callout svg { flex:none; color:var(--gold-600); margin-top:1px; }
+  .callout b { font-family:'Lexend'; }
+
+  .start-cta { margin-top:30px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+
+  /* ---------- Exam layout ---------- */
+  .exam-grid { display:grid; grid-template-columns: 1fr 286px; gap:24px; align-items:start; }
+  .progress-track { height:8px; border-radius:99px; background:var(--border); overflow:hidden; margin-bottom:18px; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--blue-500),var(--blue-600)); border-radius:99px; transition:width .35s ease; }
+
+  .qcard {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-md); padding:30px; min-height:420px; display:flex; flex-direction:column;
+  }
+  .qmeta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .qnum { font-family:'Lexend'; font-weight:600; font-size:13px; color:var(--fg-subtle); }
+  .topic-tag {
+    font-size:12px; font-weight:600; font-family:'Lexend'; padding:4px 11px; border-radius:999px;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--fg-muted);
+  }
+  .case-tag { background:var(--blue-50); border-color:var(--blue-200); color:var(--primary); }
+  .multi-tag { background:var(--amber-50); border-color:var(--gold-400); color:var(--gold-600); margin-left:auto; }
+
+  .qtext { font-family:'Lexend'; font-weight:500; font-size:18.5px; line-height:1.5; color:var(--fg); margin-bottom:22px; }
+
+  .options { display:flex; flex-direction:column; gap:11px; }
+  .opt {
+    display:flex; gap:14px; align-items:flex-start; padding:15px 17px; border-radius:var(--radius-sm);
+    border:1.5px solid var(--border); background:var(--surface); cursor:pointer;
+    transition:border-color .15s, background .15s, box-shadow .15s;
+  }
+  .opt:hover { border-color:var(--blue-200); background:var(--blue-50); }
+  .opt.selected { border-color:var(--primary); background:var(--blue-50); box-shadow:0 0 0 1px var(--primary) inset; }
+  .opt-marker {
+    flex:none; width:30px; height:30px; border-radius:8px; border:1.5px solid var(--border-strong);
+    display:grid; place-items:center; font-family:'Lexend'; font-weight:600; font-size:14px;
+    color:var(--fg-muted); background:var(--surface); transition:all .15s;
+  }
+  .opt.multi .opt-marker { border-radius:8px; }
+  .opt.single .opt-marker { border-radius:50%; }
+  .opt.selected .opt-marker { background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+  .opt-body { padding-top:3px; font-size:15.5px; }
+  .opt-letter { display:none; }
+
+  /* review (post-submit) coloring */
+  .opt.correct { border-color:var(--green-500); background:var(--green-50); box-shadow:0 0 0 1px var(--green-500) inset; }
+  .opt.correct .opt-marker { background:var(--green-500); color:#fff; border-color:var(--green-500); }
+  .opt.wrong { border-color:var(--red-500); background:var(--red-50); box-shadow:0 0 0 1px var(--red-500) inset; }
+  .opt.wrong .opt-marker { background:var(--red-500); color:#fff; border-color:var(--red-500); }
+  .opt.review { cursor:default; }
+  .opt.review:hover { background:inherit; }
+  .opt-note { margin-left:auto; font-size:12.5px; font-weight:600; font-family:'Lexend'; align-self:center; padding-left:10px; }
+  .opt.correct .opt-note { color:var(--green-600); }
+  .opt.wrong .opt-note { color:var(--red-500); }
+
+  .explain {
+    margin-top:18px; padding:18px; border-radius:var(--radius-sm);
+    background:var(--surface-2); border:1px solid var(--border); font-size:14.5px;
+  }
+  .explain h4 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--fg-subtle); margin-bottom:10px; }
+  .explain ul { margin:0; padding-left:2px; list-style:none; display:flex; flex-direction:column; gap:7px; }
+  .explain li { display:flex; gap:9px; }
+  .explain li .k { font-family:'Lexend'; font-weight:700; flex:none; width:18px; }
+  .explain li.is-correct .k { color:var(--green-600); }
+  .explain li.is-wrong .k { color:var(--red-500); }
+
+  .qnav-footer {
+    margin-top:auto; padding-top:24px; display:flex; align-items:center; gap:12px;
+  }
+  .qnav-footer .spacer { flex:1; }
+  .flag-btn {
+    display:inline-flex; align-items:center; gap:8px; padding:11px 16px; border-radius:11px;
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--fg-muted);
+    font-family:'Lexend'; font-weight:600; font-size:14px; transition:all .15s;
+  }
+  .flag-btn:hover { background:var(--surface-2); }
+  .flag-btn.active { background:var(--amber-50); border-color:var(--gold-400); color:var(--gold-600); }
+
+  /* ---------- Sidebar navigator ---------- */
+  .sidebar {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm); padding:20px; position:sticky; top:84px;
+  }
+  .sidebar h3 { font-size:14px; margin-bottom:4px; }
+  .sidebar .sub { font-size:12.5px; color:var(--fg-subtle); margin-bottom:16px; }
+  .nav-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .nav-cell {
+    aspect-ratio:1; border-radius:9px; border:1.5px solid var(--border); background:var(--surface);
+    font-family:'Lexend'; font-weight:600; font-size:13.5px; color:var(--fg-muted);
+    display:grid; place-items:center; position:relative; transition:all .14s;
+  }
+  .nav-cell:hover { border-color:var(--primary); color:var(--primary); }
+  .nav-cell.answered { background:var(--blue-600); color:#fff; border-color:var(--blue-600); }
+  .nav-cell.current { outline:3px solid var(--gold-400); outline-offset:1px; }
+  .nav-cell.flagged::after {
+    content:""; position:absolute; top:-4px; right:-4px; width:11px; height:11px;
+    background:var(--gold-500); border:2px solid var(--surface); border-radius:50%;
+  }
+  .legend { display:flex; flex-direction:column; gap:8px; margin-top:18px; font-size:13px; color:var(--fg-muted); }
+  .legend .row { display:flex; align-items:center; gap:9px; }
+  .dot { width:14px; height:14px; border-radius:5px; flex:none; border:1.5px solid var(--border); }
+  .dot.answered { background:var(--blue-600); border-color:var(--blue-600); }
+  .dot.unanswered { background:var(--surface); }
+  .dot.flagged { background:var(--gold-500); border-color:var(--gold-500); border-radius:50%; }
+  .sidebar .submit-wrap { margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
+
+  /* mobile navigator toggle */
+  .mnav-toggle { display:none; }
+
+  /* ---------- Results ---------- */
+  .results-head { text-align:center; max-width:680px; margin:0 auto; }
+  .ring-wrap { position:relative; width:188px; height:188px; margin:8px auto 18px; }
+  .ring-wrap svg { transform:rotate(-90deg); }
+  .ring-center { position:absolute; inset:0; display:grid; place-items:center; text-align:center; }
+  .ring-center .pct { font-family:'Lexend'; font-weight:700; font-size:46px; line-height:1; }
+  .ring-center .of { font-size:13px; color:var(--fg-subtle); margin-top:4px; }
+  .verdict {
+    display:inline-flex; align-items:center; gap:10px; padding:10px 22px; border-radius:999px;
+    font-family:'Lexend'; font-weight:700; font-size:17px; margin-top:6px;
+  }
+  .verdict.pass { background:var(--green-50); color:var(--green-600); border:1px solid var(--green-500); }
+  .verdict.fail { background:var(--red-50); color:var(--red-500); border:1px solid var(--red-500); }
+  .results-sub { color:var(--fg-muted); margin-top:14px; font-size:15.5px; }
+
+  .res-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:560px; margin:26px auto 0; }
+  .res-stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; text-align:center; box-shadow:var(--shadow-sm); }
+  .res-stat .n { font-family:'Lexend'; font-weight:700; font-size:26px; }
+  .res-stat .l { font-size:13px; color:var(--fg-subtle); margin-top:4px; }
+  .res-stat.ok .n { color:var(--green-600); }
+  .res-stat.bad .n { color:var(--red-500); }
+
+  .section-title { font-family:'Lexend'; font-weight:600; font-size:20px; margin:42px 0 16px; max-width:var(--maxw); }
+
+  .domain-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:24px; }
+  .domain-row { display:flex; align-items:center; gap:14px; padding:13px 0; border-bottom:1px solid var(--border); }
+  .domain-row:last-child { border-bottom:none; }
+  .domain-name { font-family:'Lexend'; font-weight:600; font-size:14.5px; flex:none; width:230px; }
+  .domain-bar { flex:1; height:12px; border-radius:99px; background:var(--border); overflow:hidden; }
+  .domain-bar > span { display:block; height:100%; border-radius:99px; transition:width .6s ease; }
+  .domain-score { font-family:'Lexend'; font-weight:600; font-size:14px; flex:none; width:74px; text-align:right; }
+  .weak-pill { font-size:11.5px; font-weight:600; font-family:'Lexend'; padding:2px 9px; border-radius:999px; background:var(--red-50); color:var(--red-500); border:1px solid var(--red-500); margin-left:8px; }
+  .strong-pill { font-size:11.5px; font-weight:600; font-family:'Lexend'; padding:2px 9px; border-radius:999px; background:var(--green-50); color:var(--green-600); border:1px solid var(--green-500); margin-left:8px; }
+
+  .review-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); margin-bottom:12px; overflow:hidden; }
+  .review-q { display:flex; gap:14px; align-items:flex-start; padding:18px 20px; cursor:pointer; }
+  .rq-badge { flex:none; width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-family:'Lexend'; font-weight:700; font-size:14px; }
+  .rq-badge.ok { background:var(--green-50); color:var(--green-600); border:1px solid var(--green-500); }
+  .rq-badge.bad { background:var(--red-50); color:var(--red-500); border:1px solid var(--red-500); }
+  .rq-text { flex:1; font-size:15px; font-weight:500; }
+  .rq-chev { flex:none; color:var(--fg-subtle); transition:transform .2s; }
+  .review-item.open .rq-chev { transform:rotate(180deg); }
+  .review-body { display:none; padding:0 20px 20px; }
+  .review-item.open .review-body { display:block; }
+
+  .actions-bar { display:flex; justify-content:center; gap:14px; margin-top:40px; flex-wrap:wrap; }
+
+  .hidden { display:none !important; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 920px) {
+    .exam-grid { grid-template-columns:1fr; }
+    .sidebar { position:fixed; left:0; right:0; bottom:0; top:auto; border-radius:20px 20px 0 0;
+      z-index:50; transform:translateY(calc(100% - 0px)); transition:transform .3s ease;
+      max-height:72dvh; overflow:auto; box-shadow:var(--shadow-lg); }
+    .sidebar.open { transform:translateY(0); }
+    .mnav-toggle {
+      display:flex; position:fixed; right:18px; bottom:18px; z-index:55;
+      align-items:center; gap:9px; padding:13px 18px; border-radius:999px; border:none;
+      background:var(--primary); color:var(--on-primary); font-family:'Lexend'; font-weight:600;
+      box-shadow:var(--shadow-lg);
+    }
+    .stat-row { grid-template-columns:repeat(2,1fr); }
+    .domain-name { width:140px; font-size:13px; }
+    .res-stats { grid-template-columns:1fr; }
+  }
+  @media (max-width:520px){
+    .qcard { padding:22px 18px; }
+    .qtext { font-size:17px; }
+    .wrap { padding:18px 14px 90px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation:none !important; transition:none !important; }
+  }
+  .scrim { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:45; display:none; }
+  .scrim.show { display:block; }
+
+  /* confirm modal */
+  .modal-scrim { position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:60; display:none; place-items:center; padding:20px; }
+  .modal-scrim.show { display:grid; }
+  .modal { background:var(--surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding:28px; max-width:440px; width:100%; }
+  .modal h3 { font-size:20px; margin-bottom:10px; }
+  .modal p { color:var(--fg-muted); margin:0 0 22px; }
+  .modal-actions { display:flex; gap:12px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-logo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9h-1.8A7 7 0 1 0 4 15.7"/><path d="m9 13 2 2 4-4"/></svg>
+      </span>
+      <span class="brand-text">
+        <span class="t1">PCA Mock Exam</span>
+        <span class="t2">Professional Cloud Architect · v6.1 cohort</span>
+      </span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div id="timerPill" class="timer-pill hidden" role="timer" aria-live="off">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M12 1h0M9 1h6"/></svg>
+      <span id="timerText" class="tabular">40:00</span>
+    </div>
+    <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ============ START SCREEN ============ -->
+<main id="screenStart" class="wrap">
+  <section class="hero">
+    <span class="badge-soft">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg>
+      19 authentic cohort questions · official answer keys
+    </span>
+    <h1>Google Cloud Professional<br/>Cloud Architect — Mock Exam</h1>
+    <p class="lead">Real questions from the official PCA sample set this cohort passed on, with the verbatim answer explanations. Single & multi-select, timed, scored at the <b>70% pass line</b>, plus a weak-area breakdown.</p>
+  </section>
+
+  <div class="info-card">
+    <div class="stat-row">
+      <div class="stat"><div class="num">19</div><div class="lbl">Questions</div></div>
+      <div class="stat"><div class="num">70%</div><div class="lbl">Pass mark</div></div>
+      <div class="stat"><div class="num">40<span style="font-size:14px">m</span></div><div class="lbl">Timer</div></div>
+      <div class="stat"><div class="num">6</div><div class="lbl">Topics</div></div>
+    </div>
+
+    <div class="opt-toggle-row">
+      <label class="chk"><input type="checkbox" id="optTimer" checked /> Timed (40:00)</label>
+      <label class="chk"><input type="checkbox" id="optShuffle" /> Shuffle questions</label>
+      <label class="chk"><input type="checkbox" id="optInstant" /> Reveal answer after each</label>
+    </div>
+
+    <div class="start-cta">
+      <button class="btn btn-primary btn-lg" id="startBtn" style="width:100%">
+        Start exam
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button class="btn btn-ghost" id="resumeBtn" style="width:100%; display:none">Resume saved attempt</button>
+    </div>
+  </div>
+
+  <div class="callout">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+    <div><b>Note on exam version.</b> These are official Google PCA sample questions. The current exam (v6.1, Oct 30 2025) retired the Mountkirk Games, Helicopter Racing League & TerramEarth case studies and now centers on generative AI (Gemini) — those legacy-case questions are kept here because the underlying architecture concepts still transfer.</div>
+  </div>
+</main>
+
+<!-- ============ EXAM SCREEN ============ -->
+<main id="screenExam" class="wrap hidden">
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="exam-grid">
+    <div>
+      <div class="qcard" id="qcard"><!-- injected --></div>
+      <div class="qnav-footer">
+        <button class="btn btn-ghost" id="prevBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Previous
+        </button>
+        <button class="flag-btn" id="flagBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1Z"/><path d="M4 22v-7"/></svg>
+          <span id="flagLabel">Flag</span>
+        </button>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="nextBtn">
+          Next
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+      <h3>Question navigator</h3>
+      <p class="sub" id="navSub">0 of 19 answered</p>
+      <div class="nav-grid" id="navGrid"></div>
+      <div class="legend">
+        <div class="row"><span class="dot answered"></span> Answered</div>
+        <div class="row"><span class="dot unanswered"></span> Not answered</div>
+        <div class="row"><span class="dot flagged"></span> Flagged for review</div>
+      </div>
+      <div class="submit-wrap">
+        <button class="btn btn-accent" id="submitBtn" style="width:100%">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Submit exam
+        </button>
+      </div>
+    </aside>
+  </div>
+</main>
+<button class="mnav-toggle hidden" id="mnavToggle">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  <span id="mnavCount">0/19</span>
+</button>
+<div class="scrim" id="scrim"></div>
+
+<!-- ============ RESULTS SCREEN ============ -->
+<main id="screenResults" class="wrap hidden">
+  <section class="results-head">
+    <div class="ring-wrap">
+      <svg width="188" height="188" viewBox="0 0 188 188">
+        <circle cx="94" cy="94" r="82" fill="none" stroke="var(--border)" stroke-width="14"/>
+        <circle id="ringFill" cx="94" cy="94" r="82" fill="none" stroke="var(--green-500)" stroke-width="14" stroke-linecap="round" stroke-dasharray="515" stroke-dashoffset="515"/>
+      </svg>
+      <div class="ring-center">
+        <div class="pct tabular" id="scorePct">0%</div>
+        <div class="of" id="scoreFraction">0 / 19</div>
+      </div>
+    </div>
+    <div id="verdictBadge" class="verdict pass"></div>
+    <p class="results-sub" id="resultsSub"></p>
+
+    <div class="res-stats">
+      <div class="res-stat ok"><div class="n tabular" id="statCorrect">0</div><div class="l">Correct</div></div>
+      <div class="res-stat bad"><div class="n tabular" id="statWrong">0</div><div class="l">Incorrect</div></div>
+      <div class="res-stat"><div class="n tabular" id="statTime">—</div><div class="l">Time used</div></div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Performance by topic</h2>
+  <div class="domain-card" id="domainCard"></div>
+
+  <h2 class="section-title">Review all questions</h2>
+  <div id="reviewList"></div>
+
+  <div class="actions-bar">
+    <button class="btn btn-primary btn-lg" id="retakeBtn">Retake exam</button>
+    <button class="btn btn-ghost btn-lg" id="reviewWrongBtn">Review only my mistakes</button>
+  </div>
+</main>
+
+<!-- confirm submit modal -->
+<div class="modal-scrim" id="confirmModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h3 id="confirmTitle">Submit your exam?</h3>
+    <p id="confirmText">You still have unanswered questions. Unanswered questions are marked incorrect.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelSubmit">Keep working</button>
+      <button class="btn btn-primary" id="confirmSubmit">Submit now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA — 19 official PCA sample questions (verbatim text + keys)
+   ============================================================ */
+const QUESTIONS = [
+  { id:1, topic:"Security & Compliance", case:"EHR Healthcare", type:"single",
+    text:"Anonymous users from all over the world access a public health information website hosted in an on-premises EHR data center. The servers are older, and users complain about sluggish response times. There has been a recent increase of distributed denial-of-service attacks toward the website. The attacks always come from the same IP address ranges. You need to improve access latency and provide a security solution that will prevent the denial-of-service traffic from entering your VPC network. What should you do?",
+    options:{
+      A:"Deploy an external HTTP(S) load balancer, configure VPC firewall rules, and move the applications onto Compute Engine virtual machines.",
+      B:"Deploy an external HTTP(S) load balancer, configure Google Cloud Armor, and move the application onto Compute Engine virtual machines.",
+      C:"Containerize the application and move it into GKE. Create a GKE service to expose the pods within the cluster, and set up a GKE network policy.",
+      D:"Containerize the application and move it into GKE. Create an internal load balancer to expose the pods outside the cluster, and configure Identity-Aware Proxy (IAP) for access."},
+    correct:["B"],
+    why:{ A:"Firewall rules do not block malicious traffic into a VPC; they block it at the VM level.",
+      B:"The external HTTP(S) load balancer improves access latency and Cloud Armor can be configured to block the DDoS attack.",
+      C:"A GKE service does not expose a set of pods outside of a cluster, and a GKE network policy only filters traffic between pods and services.",
+      D:"A GKE internal load balancer will not load balance external traffic, and anonymous users need access, so IAP is not a fit."} },
+
+  { id:2, topic:"Networking & Hybrid", case:"EHR Healthcare", type:"single",
+    text:"EHR wants to connect one of their data centers to Google Cloud. The data center is in a remote location over 100 km from a Google-owned point of presence. They can't afford new hardware, but their existing firewall can accommodate future throughput growth. On-prem servers must talk to GKE resources; both on-prem and cloud use private RFC 1918 addresses; and the service provider says basic Internet connectivity is best-effort with no SLA. What should you recommend?",
+    options:{ A:"Provision Carrier Peering.", B:"Provision a new Internet connection.",
+      C:"Provision a Partner Interconnect connection.", D:"Provision a Dedicated Interconnect connection."},
+    correct:["C"],
+    why:{ A:"It does not give private IP addressing across the connection.",
+      B:"An additional Internet connection will not provide RFC1918 communications by itself.",
+      C:"It lowers latency by connecting directly to a partner network that is directly connected to Google, and lets the customer use the lower-bandwidth interfaces on their current firewall.",
+      D:"Dedicated Interconnect would require the customer to buy new hardware to get a 10 Gig interface for their firewall."} },
+
+  { id:3, topic:"Security & Compliance", case:"EHR Healthcare", type:"single",
+    text:"A renowned research hospital requires that patient information stored in Cloud Storage buckets not leave the geographic areas in which the buckets are hosted. Sources have repeatedly tried to exfiltrate patient health information. You need to ensure that information stored in Cloud Storage buckets in the \"europe-west2\" region does not leave that area. What should you do?",
+    options:{ A:"Encrypt the data in the application on-premises before it is stored in the \"europe-west2\" region.",
+      B:"Enable VPC Service Controls, and create a service perimeter around the Cloud Storage resources.",
+      C:"Assign the IAM \"storage.objectViewer\" role only to users and service accounts that need to use the data.",
+      D:"Create an ACL that limits access to the bucket to authorized users only, and apply it to the buckets in \"europe-west2\"."},
+    correct:["B"],
+    why:{ A:"Encrypting the data does not stop data exfiltration.",
+      B:"VPC Service Controls improves your ability to mitigate the risk of data exfiltration from Google Cloud services.",
+      C:"IAM roles deal with identity-based access control, not context-aware perimeter security.",
+      D:"Cloud Storage ACLs define who has access, but do not stop data exfiltration."} },
+
+  { id:4, topic:"Security & Compliance", case:"EHR Healthcare", type:"single",
+    text:"EHR sales employees are a remote workforce that needs to access web-based sales tools located in the EHR data center, regardless of location. EHR is retiring its VPN and you must move the web-based sales tools to a BeyondCorp access model. Each sales employee has a Google Workspace account used for SSO. What should you do?",
+    options:{ A:"Create an Identity-Aware Proxy (IAP) connector that points to the sales tool application.",
+      B:"Create a Google group for the sales tool application, and upgrade that group to a security group.",
+      C:"Deploy an external HTTP(S) load balancer and create a custom Cloud Armor policy for the sales tool application.",
+      D:"For every sales employee who needs access, give their Google Workspace user account the predefined AppEngine Viewer role."},
+    correct:["A"],
+    why:{ A:"The IAP connector allows you to manage access to HTTP-based apps outside of Google Cloud.",
+      B:"Google groups by themselves do not grant access to an application nor move it to a BeyondCorp model.",
+      C:"Cloud Armor does not authenticate or authorize application access.",
+      D:"The application is installed in the datacenter, not in the App Engine environment."} },
+
+  { id:5, topic:"Data & Analytics", case:"Mountkirk Games", type:"single",
+    text:"You are the data compliance officer for Mountkirk Games and must protect customers' PII. Mountkirk wants to generate anonymized usage reports about their new game and delete PII data after a specific period of time. The solution should have minimal cost. What should you do?",
+    options:{ A:"Archive audit logs in Cloud Storage, and manually generate reports.",
+      B:"Write a Cloud Logging filter to export specific date ranges to Pub/Sub.",
+      C:"Archive audit logs in BigQuery, and generate reports using Google Data Studio.",
+      D:"Archive user logs on a locally attached persistent disk, and cat them to a text file for auditing."},
+    correct:["C"],
+    why:{ A:"Cloud Storage is an object store with no query language access for report generation.",
+      B:"It does not address log storage for data retention.",
+      C:"BigQuery allows easy querying for report generation, with low storage costs.",
+      D:"Long-term storage in persistent disks is expensive."} },
+
+  { id:6, topic:"Security & Compliance", case:"Mountkirk Games", type:"multi", pick:2,
+    text:"Mountkirk Games wants their new gaming platform operated according to Google best practices. You want to verify Google-recommended security best practices are met while providing operations teams with the metrics they need. What should you do? (Choose two)",
+    options:{ A:"Ensure that you aren't running privileged containers.",
+      B:"Ensure that you are using obfuscated Tags on workloads.",
+      C:"Ensure that you are using the native logging mechanisms.",
+      D:"Ensure that workloads are not using securityContext to run as a group.",
+      E:"Ensure that each cluster is running GKE metering so each team can be charged for their usage."},
+    correct:["A","C"],
+    why:{ A:"This is High Priority according to Google best practices.",
+      B:"Tags should be readable and useful to the operations teams when working on the clusters.",
+      C:"This is High Priority according to Google best practices.",
+      D:"This may be required for some workloads.",
+      E:"Although useful from a business process view, it won't impact the operations or security of the cluster."} },
+
+  { id:7, topic:"Security & Compliance", case:"Mountkirk Games", type:"single",
+    text:"You need to implement VPC Service Controls for Mountkirk Games. They want to allow Cloud Shell usage by their developers. Developers should not have full access to managed services. You need to balance these conflicting goals with the business requirements. What should you do?",
+    options:{ A:"Use VPC Service Controls for the entire platform.",
+      B:"Prioritize VPC Service Controls implementation over Cloud Shell usage for the entire platform.",
+      C:"Include all developers in an access level associated with the service perimeter, and allow them to use Cloud Shell.",
+      D:"Create a service perimeter around only the projects that handle sensitive data, and do not grant your developers access to it."},
+    correct:["D"],
+    why:{ A:"VPC Service Controls do not directly affect scaling of Google Cloud architecture.",
+      B:"A security perimeter is not a business requirement, but rapid iteration is.",
+      C:"It works but does not scale, and we do not want to give users this much access.",
+      D:"VPC Service Controls protects data, and Cloud Shell facilitates rapid iteration of architecture changes."} },
+
+  { id:8, topic:"SRE & Operations", case:"Mountkirk Games", type:"single",
+    text:"Your new game running on Google Cloud is in public beta, and you want to design meaningful service level objectives (SLOs) before the game becomes generally available. What should you do?",
+    options:{ A:"Define one SLO as 99.9% game server availability. Define the other SLO as less than 100-ms latency.",
+      B:"Define one SLO as service availability that is the same as Google Cloud's availability. Define the other SLO as 100-ms latency.",
+      C:"Define one SLO as 99% HTTP requests return the 2xx status code. Define the other SLO as 99% requests return within 100 ms.",
+      D:"Define one SLO as total uptime of the game server within a week. Define the other SLO as the mean response time of all HTTP requests that are less than 100 ms."},
+    correct:["C"],
+    why:{ A:"It doesn't clearly define how to measure both the availability and latency.",
+      B:"Google Cloud availability impacts customer availability but it is only one factor; availability could differ across products.",
+      C:"It clearly defines the service level indicators and how to measure them.",
+      D:"There is no objective for the server uptime."} },
+
+  { id:9, topic:"Networking & Hybrid", case:"Helicopter Racing League", type:"single",
+    text:"HRL wants you to help bring existing recorded video content to new fans in emerging regions. Considering HRL's business and technical requirements, what should you do?",
+    options:{ A:"Serve the video content directly from a multi-region Cloud Storage bucket.",
+      B:"Use Cloud CDN to cache the video content from HRL's existing public cloud provider.",
+      C:"Use Apigee Edge to cache the video content from HRL's existing public cloud provider.",
+      D:"Replicate the video content in GKE clusters in regions close to the fans."},
+    correct:["B"],
+    why:{ A:"A multi-region bucket does not serve all global areas with similar latency.",
+      B:"Cloud CDN can cache data hosted on other cloud providers and supports large objects such as video.",
+      C:"Apigee Edge is not designed to cache data larger than 512 KB.",
+      D:"Replicating the video content introduces unnecessary complexity."} },
+
+  { id:10, topic:"Security & Compliance", case:"TerramEarth", type:"single",
+    text:"You are the data compliance officer for TerramEarth and must protect customers' PII, like credit card information. TerramEarth wants to personalize product recommendations for its large industrial customers. You need to respect data privacy and deliver a solution. What should you do?",
+    options:{ A:"Use AutoML to provide data to the recommendation service.",
+      B:"Process PII data on-premises to keep the private information more secure.",
+      C:"Use the Cloud Data Loss Prevention (DLP) API to provide data to the recommendation service.",
+      D:"Manually build, train, and test machine learning models to provide product recommendations anonymously."},
+    correct:["C"],
+    why:{ A:"AutoML does not inherently provide data de-identification.",
+      B:"TerramEarth's requirements are to go into the cloud, not stay on-premises.",
+      C:"Cloud DLP was specifically designed for this use case.",
+      D:"Developing machine learning models is an excessive way to de-identify data."} },
+
+  { id:11, topic:"Networking & Hybrid", case:null, type:"single",
+    text:"You are designing a future-proof hybrid environment that will require network connectivity between Google Cloud and your on-premises environment. You want to ensure the Google Cloud environment is compatible with your on-premises networking environment. What should you do?",
+    options:{ A:"Use the default VPC in your Google Cloud project. Use a Cloud VPN connection between on-premises and Google Cloud.",
+      B:"Create a custom VPC in Google Cloud in auto mode. Use a Cloud VPN connection between on-premises and Google Cloud.",
+      C:"Create a network plan for your VPC that uses CIDR ranges that overlap with your on-premises environment. Use a Cloud Interconnect connection.",
+      D:"Create a network plan for your VPC that uses non-overlapping CIDR ranges with your on-premises environment. Use a Cloud Interconnect connection."},
+    correct:["D"],
+    why:{ A:"The default VPC has Auto Mode IP ranges, which has the same problem as answer C.",
+      B:"With Auto Mode IP ranges there is no guarantee the ranges won't overlap with on-premises, now or in the future.",
+      C:"To ensure correct routing, ranges cannot overlap between environments.",
+      D:"This ensures your on-premises network is compatible with your Google Cloud VPC."} },
+
+  { id:12, topic:"Data & Analytics", case:null, type:"single",
+    text:"Your company wants to track whether someone is present in a reserved meeting room. There are 1000 meeting rooms across 5 offices on 3 continents. Each room has a motion sensor that reports status every second. The receiving infrastructure needs to account for devices that may have inconsistent connectivity. Which solution should you design?",
+    options:{ A:"Have each device create a persistent connection to a Compute Engine instance and write messages to a custom application.",
+      B:"Have devices poll for connectivity to Cloud SQL and insert the latest messages on a regular interval to a device-specific table.",
+      C:"Have devices poll for connectivity to Pub/Sub and publish the latest messages on a regular interval to a shared topic for all devices.",
+      D:"Have devices create a persistent connection to an App Engine application fronted by Cloud Endpoints, which ingests messages and writes them to Datastore."},
+    correct:["C"],
+    why:{ A:"A persistent connection does not handle the case where the device is disconnected.",
+      B:"Cloud SQL is a regional relational database, not the best fit for sensor data; write frequency can exceed supported concurrent connections.",
+      C:"Pub/Sub can handle the frequency of this data, and consumers can pull from the shared topic for further processing.",
+      D:"A persistent connection does not handle the case where the device is disconnected."} },
+
+  { id:13, topic:"Data & Analytics", case:null, type:"multi", pick:2,
+    text:"Your company wants to try the cloud with low risk. They want to archive approximately 100 TB of log data to the cloud and test serverless analytics features, while also retaining that data as a long-term disaster recovery backup. Which two steps should they take? (Choose two)",
+    options:{ A:"Load logs into BigQuery.", B:"Load logs into Cloud SQL.",
+      C:"Import logs into Cloud Logging.", D:"Insert logs into Cloud Bigtable.",
+      E:"Upload log files into Cloud Storage."},
+    correct:["A","E"],
+    why:{ A:"BigQuery is a serverless cloud data warehouse for analytics and supports the volume and analytics requirement.",
+      B:"Cloud SQL does not support 100 TB and is a relational database, not the best fit for time-series log data.",
+      C:"Cloud Logging is optimized for monitoring, error reporting, and debugging, not analytics queries.",
+      D:"Cloud Bigtable is optimized for read-write latency and throughput, not analytics querying and reporting.",
+      E:"Cloud Storage provides Coldline and Archive classes for long-term infrequent-access storage, supporting the DR backup requirement."} },
+
+  { id:14, topic:"Networking & Hybrid", case:null, type:"single",
+    text:"You set up an autoscaling managed instance group to serve web traffic. After configuring the group as a backend service to an HTTP(S) load balancer, you notice VM instances are being terminated and re-launched every minute. The instances have no public IP. You verified the appropriate web response from each instance using curl. You want to ensure the backend is configured correctly. What should you do?",
+    options:{ A:"Ensure that a firewall rule exists to allow source traffic on HTTP/HTTPS to reach the load balancer.",
+      B:"Assign a public IP to each instance, and configure a firewall rule to allow the load balancer to reach the instance public IP.",
+      C:"Ensure that a firewall rule exists to allow load balancer health checks to reach the instances in the instance group.",
+      D:"Create a tag on each instance with the name of the load balancer. Configure a firewall rule with the name of the load balancer as the source and the instance tag as the destination."},
+    correct:["C"],
+    why:{ A:"The issue to resolve is the VMs being terminated, not access to the load balancer.",
+      B:"This introduces a security vulnerability without addressing the primary concern of the VM termination.",
+      C:"Health check failures lead to a VM being marked unhealthy and terminated; since instances function properly, determine why the health check fails — it must be allowed to reach the instances.",
+      D:"The source of the firewall rule that allows health-check access is defined IP ranges, not a named load balancer."} },
+
+  { id:15, topic:"Networking & Hybrid", case:null, type:"single",
+    text:"Your organization has a 3-tier web app deployed in the same VPC. Each tier (web, API, database) scales independently. Traffic should flow web → API → database. Traffic should NOT flow between the web and the database tier. How should you configure the network with minimal steps?",
+    options:{ A:"Add each tier to a different subnetwork.",
+      B:"Set up software-based firewalls on individual VMs.",
+      C:"Add tags to each tier and set up routes to allow the desired traffic flow.",
+      D:"Add tags to each tier and set up firewall rules to allow the desired traffic flow."},
+    correct:["D"],
+    why:{ A:"The subnetwork alone will not allow and restrict traffic as required without firewall rules.",
+      B:"This adds complexity to the architecture and the instance configuration.",
+      C:"Routes still require firewall rules to allow traffic; tags define which instances a route applies to, not the next hop.",
+      D:"As instances scale they share the same tag per tier; tags can be used for both target and source in firewall rules to allow and restrict traffic."} },
+
+  { id:16, topic:"Security & Compliance", case:null, type:"single",
+    text:"You are designing a large distributed application with 30 microservices. Each microservice needs to connect to a database backend. You want to store the credentials securely. Where should you store the credentials?",
+    options:{ A:"In the source code", B:"In an environment variable",
+      C:"In a secret management system", D:"In a config file that has restricted access through ACLs"},
+    correct:["C"],
+    why:{ A:"Credentials in source code are discoverable in plain text by anyone with source access, and require redeploys on rotation.",
+      B:"Consistently populating environment variables requires the credentials available, in plain text, when the session starts.",
+      C:"A secret management system such as Secret Manager is a secure central store and single source of truth to manage, access, and audit secrets across Google Cloud.",
+      D:"A key management system is better than manually managing a config file; a plaintext config file also increases risk."} },
+
+  { id:17, topic:"Security & Compliance", case:null, type:"single",
+    text:"Your customer is moving corporate applications to Google Cloud. The security team wants detailed visibility of all resources in the organization. You set yourself up as the Organization Administrator. Which IAM roles should you give to the security team while following Google-recommended practices?",
+    options:{ A:"Organization viewer, Project owner", B:"Organization viewer, Project viewer",
+      C:"Organization administrator, Project browser", D:"Project owner, Network administrator"},
+    correct:["B"],
+    why:{ A:"Project owner is too broad — the security team does not need to make changes to projects.",
+      B:"Organization viewer grants permission to view the organization's display name, and Project viewer grants permission to see the resources within projects.",
+      C:"Organization Administrator is too broad — the team does not need to change the organization.",
+      D:"Project Owner is too broad — the team does not need to change projects."} },
+
+  { id:18, topic:"Cost & Optimization", case:null, type:"multi", pick:2,
+    text:"To reduce costs, all developers must move their development infrastructure from on-premises VMs to Google Cloud. These resources go through multiple start/stop events during the day and require state to persist. You must design the process of running a development environment in Google Cloud while providing cost visibility to the finance department. Which two steps should you take? (Choose two)",
+    options:{ A:"Use persistent disks to store the state. Start and stop the VM as needed.",
+      B:"Use the \"gcloud --auto-delete\" flag on all persistent disks before stopping the VM.",
+      C:"Apply VM CPU utilization label and include it in the BigQuery billing export.",
+      D:"Use BigQuery billing export and labels to relate cost to groups.",
+      E:"Store all state in a Local SSD, snapshot the persistent disks, and terminate the VM."},
+    correct:["A","D"],
+    why:{ A:"Persistent disks will not be deleted when an instance is stopped.",
+      B:"The --auto-delete flag has no effect unless the instance is deleted; stopping does not delete the instance or its disks.",
+      C:"Labels are used to organize instances, not to monitor metrics.",
+      D:"Exporting daily usage and cost estimates to a BigQuery dataset provides visibility to finance; labels then group costs by team or cost center.",
+      E:"State stored in local SSDs will be lost when the instance is stopped."} },
+
+  { id:19, topic:"Compute & Storage", case:null, type:"single",
+    text:"The database team asks you to improve the performance of their new database server on Compute Engine, used for importing and normalizing performance statistics. It is MySQL on Debian Linux, on an n1-standard-8 VM with 80 GB of SSD zonal persistent disk, which they can't restart until the next maintenance event. What should they change to get better performance as soon as possible and cost-effectively?",
+    options:{ A:"Increase the virtual machine's memory to 64 GB.",
+      B:"Create a new virtual machine running PostgreSQL.",
+      C:"Dynamically resize the SSD persistent disk to 500 GB.",
+      D:"Migrate their performance metrics warehouse to BigQuery."},
+    correct:["C"],
+    why:{ A:"Increasing the memory size requires a VM restart.",
+      B:"The team wants help with MySQL; migrating products shouldn't be the answer when other optimizations remain.",
+      C:"Persistent disk performance scales with total disk capacity and the instance's vCPU count; increasing capacity increases throughput and IOPS, improving MySQL performance — and a PD can be resized without a restart.",
+      D:"The team wants help with MySQL; migrating products shouldn't be the answer when other optimizations remain."} },
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const LS_KEY = "pca_mock_attempt_v1";
+const PASS_MARK = 0.70;
+const DURATION = 40 * 60; // seconds
+
+let state = null;
+let timerInt = null;
+
+function freshState(){
+  let order = QUESTIONS.map((_,i)=>i);
+  if (document.getElementById('optShuffle').checked) {
+    for (let i=order.length-1;i>0;i--){ const j=Math.floor(((i+1)*0.6180339887)%1*(i+1)); const k = pseudo(i)% (i+1); [order[i],order[k]]=[order[k],order[i]]; }
+  }
+  return {
+    order,
+    cur:0,
+    answers:{},              // qid -> array of letters
+    flags:{},                // qid -> bool
+    timed: document.getElementById('optTimer').checked,
+    instant: document.getElementById('optInstant').checked,
+    revealed:{},             // qid -> bool (instant mode)
+    remaining: DURATION,
+    started: Date.now(),
+    submitted:false
+  };
+}
+// deterministic-ish shuffle helper (avoids Math.random dependency concerns)
+function pseudo(n){ let x = Math.sin(n*99.13 + 17.7)*10000; return Math.floor(Math.abs(x)); }
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const screens = { start:$('#screenStart'), exam:$('#screenExam'), results:$('#screenResults') };
+function show(name){
+  Object.values(screens).forEach(s=>s.classList.add('hidden'));
+  screens[name].classList.remove('hidden');
+  $('#timerPill').classList.toggle('hidden', !(name==='exam' && state && state.timed));
+  $('#mnavToggle').classList.toggle('hidden', name!=='exam');
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant':'auto'});
+}
+
+/* ============================================================
+   THEME
+   ============================================================ */
+$('#themeToggle').addEventListener('click', ()=>{
+  const root = document.documentElement;
+  const dark = root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  $('#iconMoon').innerHTML = dark
+    ? '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
+    : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+});
+
+/* ============================================================
+   EXAM RENDERING
+   ============================================================ */
+function curQ(){ return QUESTIONS[state.order[state.cur]]; }
+
+function renderQuestion(){
+  const q = curQ();
+  const ans = state.answers[q.id] || [];
+  const isRevealed = state.instant && state.revealed[q.id];
+  const isMulti = q.type==='multi';
+
+  let optsHtml = q && Object.entries(q.options).map(([letter,txt])=>{
+    let cls = isMulti ? 'opt multi' : 'opt single';
+    let note = '';
+    if (isRevealed){
+      cls += ' review';
+      const isCorrect = q.correct.includes(letter);
+      const picked = ans.includes(letter);
+      if (isCorrect){ cls+=' correct'; note='<span class="opt-note">Correct answer</span>'; }
+      else if (picked){ cls+=' wrong'; note='<span class="opt-note">Your choice</span>'; }
+    } else if (ans.includes(letter)){ cls += ' selected'; }
+    return `<div class="${cls}" data-letter="${letter}" role="${isMulti?'checkbox':'radio'}" aria-checked="${ans.includes(letter)}" tabindex="0">
+        <span class="opt-marker">${letter}</span>
+        <span class="opt-body">${txt}</span>${note}
+      </div>`;
+  }).join('');
+
+  const caseIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:-1px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>';
+  const caseTag = q.case ? `<span class="topic-tag case-tag">${caseIcon}${q.case}</span>` : '';
+  const multiTag = isMulti ? `<span class="topic-tag multi-tag">Choose ${q.pick}</span>` : '';
+
+  let explainHtml = '';
+  if (isRevealed){
+    explainHtml = `<div class="explain"><h4>Why</h4><ul>${
+      Object.entries(q.why).map(([k,v])=>{
+        const cClass = q.correct.includes(k)?'is-correct':'is-wrong';
+        return `<li class="${cClass}"><span class="k">${k}</span><span>${v}</span></li>`;
+      }).join('')
+    }</ul></div>`;
+  }
+
+  $('#qcard').innerHTML = `
+    <div class="qmeta">
+      <span class="qnum">Question ${state.cur+1} of ${QUESTIONS.length}</span>
+      <span class="topic-tag">${q.topic}</span>
+      ${caseTag}
+      ${multiTag}
+    </div>
+    <div class="qtext">${q.text}</div>
+    <div class="options" id="optionsBox">${optsHtml}</div>
+    ${explainHtml}
+  `;
+  // bind option clicks
+  if (!isRevealed){
+    $('#optionsBox').querySelectorAll('.opt').forEach(el=>{
+      el.addEventListener('click', ()=>selectOption(el.dataset.letter));
+      el.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); selectOption(el.dataset.letter);} });
+    });
+  }
+
+  // footer/sidebar sync
+  $('#prevBtn').disabled = state.cur===0;
+  const isLast = state.cur===QUESTIONS.length-1;
+  $('#nextBtn').classList.toggle('hidden', isLast && !state.instant ? false : false);
+  $('#nextBtn').innerHTML = isLast
+    ? 'Review &amp; submit <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'
+    : 'Next <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  const flagged = !!state.flags[q.id];
+  $('#flagBtn').classList.toggle('active', flagged);
+  $('#flagLabel').textContent = flagged ? 'Flagged' : 'Flag';
+
+  renderNav();
+  updateProgress();
+}
+
+function selectOption(letter){
+  const q = curQ();
+  let ans = state.answers[q.id] ? [...state.answers[q.id]] : [];
+  if (q.type==='single'){
+    ans = [letter];
+  } else {
+    if (ans.includes(letter)) ans = ans.filter(l=>l!==letter);
+    else {
+      if (ans.length >= q.pick){ ans.shift(); } // keep newest within pick limit
+      ans.push(letter);
+    }
+  }
+  state.answers[q.id] = ans;
+  save();
+
+  // instant reveal once a complete answer is given
+  if (state.instant){
+    const complete = q.type==='single' ? ans.length===1 : ans.length===q.pick;
+    if (complete) state.revealed[q.id] = true;
+  }
+  renderQuestion();
+}
+
+function renderNav(){
+  const grid = $('#navGrid'); grid.innerHTML='';
+  let answered=0;
+  state.order.forEach((qi, idx)=>{
+    const q = QUESTIONS[qi];
+    const a = state.answers[q.id]||[];
+    const isAnswered = q.type==='single' ? a.length===1 : a.length===q.pick;
+    if (isAnswered) answered++;
+    const cell = document.createElement('button');
+    cell.className = 'nav-cell' + (isAnswered?' answered':'') + (idx===state.cur?' current':'') + (state.flags[q.id]?' flagged':'');
+    cell.textContent = idx+1;
+    cell.setAttribute('aria-label', `Go to question ${idx+1}${isAnswered?' (answered)':''}${state.flags[q.id]?' (flagged)':''}`);
+    cell.addEventListener('click', ()=>{ state.cur=idx; renderQuestion(); closeMobileNav(); });
+    grid.appendChild(cell);
+  });
+  $('#navSub').textContent = `${answered} of ${QUESTIONS.length} answered`;
+  $('#mnavCount').textContent = `${answered}/${QUESTIONS.length}`;
+}
+
+function updateProgress(){
+  $('#progressFill').style.width = `${((state.cur+1)/QUESTIONS.length)*100}%`;
+}
+
+/* nav buttons */
+$('#prevBtn').addEventListener('click', ()=>{ if(state.cur>0){ state.cur--; renderQuestion(); }});
+$('#nextBtn').addEventListener('click', ()=>{
+  if (state.cur < QUESTIONS.length-1){ state.cur++; renderQuestion(); }
+  else openConfirm();
+});
+$('#flagBtn').addEventListener('click', ()=>{
+  const q = curQ(); state.flags[q.id] = !state.flags[q.id]; save(); renderQuestion();
+});
+
+/* keyboard */
+document.addEventListener('keydown', e=>{
+  if (screens.exam.classList.contains('hidden')) return;
+  if (e.target.tagName==='INPUT') return;
+  if (e.key==='ArrowRight'){ $('#nextBtn').click(); }
+  else if (e.key==='ArrowLeft'){ $('#prevBtn').click(); }
+  else if (e.key==='f'||e.key==='F'){ $('#flagBtn').click(); }
+  else if (/^[1-5]$/.test(e.key)){ const letter='ABCDE'[+e.key-1]; const q=curQ(); if(q.options[letter] && !(state.instant&&state.revealed[q.id])) selectOption(letter); }
+  else if (/^[a-eA-E]$/.test(e.key)){ const letter=e.key.toUpperCase(); const q=curQ(); if(q.options[letter] && !(state.instant&&state.revealed[q.id])) selectOption(letter); }
+});
+
+/* mobile nav */
+function openMobileNav(){ $('#sidebar').classList.add('open'); $('#scrim').classList.add('show'); }
+function closeMobileNav(){ $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('show'); }
+$('#mnavToggle').addEventListener('click', openMobileNav);
+$('#scrim').addEventListener('click', closeMobileNav);
+
+/* ============================================================
+   TIMER
+   ============================================================ */
+function startTimer(){
+  if (!state.timed) return;
+  clearInterval(timerInt);
+  tickTimer();
+  timerInt = setInterval(()=>{ state.remaining--; tickTimer(); save();
+    if (state.remaining<=0){ clearInterval(timerInt); doSubmit(true); }
+  }, 1000);
+}
+function tickTimer(){
+  const m = Math.floor(state.remaining/60), s = state.remaining%60;
+  $('#timerText').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const pill = $('#timerPill'); pill.classList.remove('warn','danger');
+  if (state.remaining<=60) pill.classList.add('danger');
+  else if (state.remaining<=300) pill.classList.add('warn');
+}
+
+/* ============================================================
+   SUBMIT + SCORING
+   ============================================================ */
+function openConfirm(){
+  const answered = countAnswered();
+  const left = QUESTIONS.length-answered;
+  $('#confirmText').textContent = left>0
+    ? `You have ${left} unanswered question${left>1?'s':''}. Unanswered questions are scored as incorrect. Submit anyway?`
+    : `All ${QUESTIONS.length} questions answered. Ready to see your results?`;
+  $('#confirmModal').classList.add('show');
+}
+$('#submitBtn').addEventListener('click', openConfirm);
+$('#cancelSubmit').addEventListener('click', ()=>$('#confirmModal').classList.remove('show'));
+$('#confirmSubmit').addEventListener('click', ()=>{ $('#confirmModal').classList.remove('show'); doSubmit(false); });
+
+function countAnswered(){
+  let n=0; QUESTIONS.forEach(q=>{ const a=state.answers[q.id]||[]; if(q.type==='single'?a.length===1:a.length===q.pick) n++; }); return n;
+}
+function isCorrect(q){
+  const a = state.answers[q.id]||[];
+  if (a.length!==q.correct.length) return false;
+  return q.correct.every(c=>a.includes(c));
+}
+
+function doSubmit(byTimeout){
+  clearInterval(timerInt);
+  state.submitted=true; save();
+  renderResults(byTimeout);
+  show('results');
+  closeMobileNav();
+}
+
+function renderResults(byTimeout){
+  const total = QUESTIONS.length;
+  let correct=0;
+  QUESTIONS.forEach(q=>{ if(isCorrect(q)) correct++; });
+  const pct = correct/total;
+  const passed = pct>=PASS_MARK;
+
+  // ring
+  const circ = 2*Math.PI*82;
+  const ring = $('#ringFill');
+  ring.style.stroke = passed ? 'var(--green-500)' : 'var(--red-500)';
+  ring.setAttribute('stroke-dasharray', circ);
+  setTimeout(()=>{ ring.setAttribute('stroke-dashoffset', circ*(1-pct)); }, 80);
+
+  $('#scorePct').textContent = Math.round(pct*100)+'%';
+  $('#scoreFraction').textContent = `${correct} / ${total}`;
+  const vb = $('#verdictBadge');
+  vb.className = 'verdict ' + (passed?'pass':'fail');
+  vb.innerHTML = passed
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg> PASS'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg> NOT YET';
+  $('#resultsSub').innerHTML = passed
+    ? `You're above the 70% pass line — solid work. Review the topic breakdown below to push your margin higher.`
+    : `You need <b>70%</b> to pass (that's ${Math.ceil(PASS_MARK*total)} of ${total}). You're ${Math.ceil(PASS_MARK*total)-correct} question${(Math.ceil(PASS_MARK*total)-correct)>1?'s':''} short. The topic breakdown shows exactly where to focus.`;
+
+  $('#statCorrect').textContent = correct;
+  $('#statWrong').textContent = total-correct;
+  if (state.timed){
+    const used = DURATION - state.remaining;
+    $('#statTime').textContent = `${Math.floor(used/60)}:${String(used%60).padStart(2,'0')}`;
+  } else if (byTimeout){ $('#statTime').textContent='40:00'; }
+  else { $('#statTime').textContent='—'; }
+
+  renderDomains();
+  renderReview(false);
+}
+
+function renderDomains(){
+  const map = {};
+  QUESTIONS.forEach(q=>{
+    map[q.topic] = map[q.topic] || {t:0,c:0};
+    map[q.topic].t++; if(isCorrect(q)) map[q.topic].c++;
+  });
+  const rows = Object.entries(map).sort((a,b)=> (a[1].c/a[1].t)-(b[1].c/b[1].t));
+  $('#domainCard').innerHTML = rows.map(([name,o])=>{
+    const p = o.c/o.t; const pc = Math.round(p*100);
+    const col = p>=0.7 ? 'var(--green-500)' : p>=0.5 ? 'var(--gold-500)' : 'var(--red-500)';
+    const pill = p<0.7 ? `<span class="weak-pill">Focus area</span>` : `<span class="strong-pill">Strong</span>`;
+    return `<div class="domain-row">
+      <div class="domain-name">${name}${pill}</div>
+      <div class="domain-bar"><span style="width:${pc}%;background:${col}"></span></div>
+      <div class="domain-score">${o.c}/${o.t} · ${pc}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderReview(onlyWrong){
+  const list = $('#reviewList'); list.innerHTML='';
+  state.order.forEach((qi, idx)=>{
+    const q = QUESTIONS[qi];
+    const ok = isCorrect(q);
+    if (onlyWrong && ok) return;
+    const a = state.answers[q.id]||[];
+    const item = document.createElement('div');
+    item.className='review-item';
+    const optsHtml = Object.entries(q.options).map(([letter,txt])=>{
+      let cls='opt review';
+      const isC = q.correct.includes(letter), picked=a.includes(letter);
+      let note='';
+      if (isC){ cls+=' correct'; note='<span class="opt-note">Correct</span>'; }
+      else if (picked){ cls+=' wrong'; note='<span class="opt-note">Your choice</span>'; }
+      return `<div class="${cls}"><span class="opt-marker">${letter}</span><span class="opt-body">${txt}</span>${note}</div>`;
+    }).join('');
+    const whyHtml = Object.entries(q.why).map(([k,v])=>{
+      const cClass=q.correct.includes(k)?'is-correct':'is-wrong';
+      return `<li class="${cClass}"><span class="k">${k}</span><span>${v}</span></li>`;
+    }).join('');
+    item.innerHTML = `
+      <div class="review-q">
+        <span class="rq-badge ${ok?'ok':'bad'}">${ok
+          ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>'
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>'}</span>
+        <span class="rq-text"><b>Q${idx+1}.</b> ${q.text}</span>
+        <svg class="rq-chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="review-body">
+        <div class="qmeta" style="margin:6px 0 14px"><span class="topic-tag">${q.topic}</span>${q.case?`<span class="topic-tag case-tag" style="padding-left:11px">${q.case}</span>`:''}${q.type==='multi'?`<span class="topic-tag multi-tag" style="margin-left:8px">Choose ${q.pick}</span>`:''}</div>
+        <div class="options" style="margin-bottom:6px">${optsHtml}</div>
+        <div class="explain"><h4>Official explanation</h4><ul>${whyHtml}</ul></div>
+      </div>`;
+    item.querySelector('.review-q').addEventListener('click', ()=>item.classList.toggle('open'));
+    list.appendChild(item);
+  });
+  if (onlyWrong && !list.children.length){
+    list.innerHTML = `<div class="domain-card" style="text-align:center;color:var(--fg-muted)">No mistakes to review — perfect score on this attempt.</div>`;
+  }
+}
+
+$('#reviewWrongBtn').addEventListener('click', ()=>{
+  const btn=$('#reviewWrongBtn');
+  const showingWrong = btn.dataset.mode==='wrong';
+  if (showingWrong){ renderReview(false); btn.textContent='Review only my mistakes'; btn.dataset.mode=''; }
+  else { renderReview(true); btn.textContent='Show all questions'; btn.dataset.mode='wrong'; document.querySelector('#reviewList').scrollIntoView({behavior:'smooth'}); }
+});
+
+/* ============================================================
+   PERSISTENCE
+   ============================================================ */
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const r=localStorage.getItem(LS_KEY); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function clearSave(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+
+/* ============================================================
+   LIFECYCLE
+   ============================================================ */
+$('#startBtn').addEventListener('click', ()=>{
+  clearSave();
+  state = freshState();
+  save();
+  show('exam');
+  renderQuestion();
+  startTimer();
+});
+$('#resumeBtn').addEventListener('click', ()=>{
+  state = load();
+  if (!state){ return; }
+  if (state.submitted){ renderResults(false); show('results'); return; }
+  show('exam'); renderQuestion(); startTimer();
+});
+$('#retakeBtn').addEventListener('click', ()=>{
+  clearSave();
+  $('#reviewWrongBtn').textContent='Review only my mistakes'; $('#reviewWrongBtn').dataset.mode='';
+  show('start');
+});
+
+// offer resume if an unfinished attempt exists
+(function init(){
+  const saved = load();
+  if (saved && !saved.submitted && Object.keys(saved.answers||{}).length){
+    const rb = $('#resumeBtn'); rb.style.display='flex';
+    rb.innerHTML = `Resume saved attempt · ${Object.keys(saved.answers).length} answered`;
+  }
+})();
+</script>
+</body>
+</html>
