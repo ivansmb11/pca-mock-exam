@@ -1,5 +1,8 @@
 import { isConfigured } from "./supabase-client.js";
-import { onAuthChange, signInWithGoogle, signOut, getUser } from "./auth.js";
+import {
+  onAuthChange, signInWithGoogle, signInWithPassword, signUpWithPassword,
+  signOut, getUser,
+} from "./auth.js";
 import { QUESTIONS } from "./questions.js";
 import { startExam, teardown } from "./quiz-engine.js";
 import { callCoach } from "./api.js";
@@ -40,8 +43,32 @@ if (!isConfigured()) {
     "⚠ This build is not yet connected to Supabase. Set SUPABASE_URL and SUPABASE_ANON_KEY in web/config.js.";
   $("#googleBtn").disabled = true;
 }
-$("#googleBtn").addEventListener("click", () => signInWithGoogle().catch((e) => alert(e.message)));
+$("#googleBtn").addEventListener("click", () => signInWithGoogle().catch((e) => setAuthMsg(e.message, true)));
 $("#signOutBtn").addEventListener("click", () => signOut());
+
+function setAuthMsg(msg, isErr = false) {
+  const el = $("#authMsg");
+  el.textContent = msg;
+  el.classList.toggle("err", isErr);
+}
+$("#emailForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("#emailInput").value.trim();
+  const pw = $("#passwordInput").value;
+  setAuthMsg("Signing in…");
+  try { await signInWithPassword(email, pw); } catch (err) { setAuthMsg(err.message, true); }
+});
+$("#emailSignUpBtn").addEventListener("click", async () => {
+  const email = $("#emailInput").value.trim();
+  const pw = $("#passwordInput").value;
+  if (!email || pw.length < 6) { setAuthMsg("Enter an email and a password of at least 6 characters.", true); return; }
+  setAuthMsg("Creating account…");
+  try {
+    const data = await signUpWithPassword(email, pw);
+    if (data.session) setAuthMsg("");
+    else setAuthMsg("Account created. Check your email to confirm, then sign in.");
+  } catch (err) { setAuthMsg(err.message, true); }
+});
 
 onAuthChange(async (session) => {
   currentUser = getUser(session);
