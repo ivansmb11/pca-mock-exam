@@ -106,7 +106,6 @@ async function handleComplete(results) {
 
   // Persist the attempt, then ask Claude for coaching + adaptive questions.
   const coachEl = $("#coachingPanel");
-  coachEl.innerHTML = coachingLoading();
   $("#adaptiveBtn").classList.add("hidden");
 
   try {
@@ -116,6 +115,16 @@ async function handleComplete(results) {
     return;
   }
 
+  // Don't spend tokens analyzing a blank attempt — if nothing was answered,
+  // there's nothing to coach. (Skipped questions are already excluded from the
+  // payload; this guards the answered-nothing case entirely.)
+  if (!results.attemptedCount) {
+    coachEl.innerHTML = `<div class="domain-card" style="text-align:center;color:var(--fg-muted)">You didn't answer any questions, so there's nothing for the AI to analyze yet. Answer at least one and you'll get coaching plus adaptive practice on your weak topics.</div>`;
+    refreshTrend();
+    return;
+  }
+
+  coachEl.innerHTML = coachingLoading();
   let history = [];
   try { history = await getHistory(currentUser.id); } catch { /* non-fatal */ }
 

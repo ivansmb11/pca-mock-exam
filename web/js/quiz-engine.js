@@ -236,6 +236,7 @@ function doSubmit(byTimeout) {
 
   const total = S.questions.length;
   let correctCount = 0;
+  let attemptedCount = 0;
   const perQuestion = [];
   const wrongQuestions = [];
   const answers = {};
@@ -246,12 +247,18 @@ function doSubmit(byTimeout) {
     const a = S.answers[q.id] || [];
     answers[q.id] = a;
     const ok = isCorrect(q);
+    const attempted = a.length > 0; // user selected at least one option
     if (ok) correctCount++;
+    if (attempted) attemptedCount++;
     perQuestion.push({ q, picked: a, isCorrect: ok });
     topicMap[q.topic] = topicMap[q.topic] || { correct: 0, total: 0 };
     topicMap[q.topic].total++;
     if (ok) topicMap[q.topic].correct++;
-    if (!ok) {
+    // Only send questions the user actually answered-and-got-wrong to the AI.
+    // Skipped/empty questions carry no signal worth spending tokens on — the
+    // topic breakdown still reflects them (counted as incorrect) so the coach
+    // can target those weak topics for adaptive questions.
+    if (!ok && attempted) {
       wrongQuestions.push({
         topic: q.topic, text: q.text,
         options: q.options, correct: q.correct, yourAnswer: a,
@@ -268,7 +275,7 @@ function doSubmit(byTimeout) {
 
   onComplete?.({
     source: S.source, round: S.round,
-    correctCount, total, pct, passed: pct / 100 >= PASS_MARK,
+    correctCount, attemptedCount, total, pct, passed: pct / 100 >= PASS_MARK,
     timeUsed: byTimeout && S.timed ? optDuration() : durationUsed,
     topicBreakdown, perQuestion, wrongQuestions, answers,
   });
