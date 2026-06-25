@@ -10,6 +10,41 @@ export const DEFAULT_DURATION = 40 * 60;
 let S = null;          // exam state
 let timerInt = null;
 let onComplete = null;
+let persistKey = null; // localStorage key for in-progress autosave (per user)
+
+// ---- in-progress autosave -------------------------------------------------
+// The whole serialisable exam state is written to localStorage so a refresh or
+// accidental tab close can be resumed. We persist the full question array too
+// (not just ids) so adaptive rounds — whose questions exist only in memory —
+// can also be resumed. Cleared on submit.
+function persist() {
+  if (!persistKey || !S) return;
+  try {
+    localStorage.setItem(persistKey, JSON.stringify({
+      v: 1, savedAt: Date.now(),
+      questions: S.questions, order: S.order, cur: S.cur,
+      answers: S.answers, flags: S.flags, revealed: S.revealed,
+      timed: S.timed, instant: S.instant, remaining: S.remaining,
+      source: S.source, round: S.round,
+    }));
+  } catch { /* quota / private mode — non-fatal */ }
+}
+function clearPersist() {
+  try { if (persistKey) localStorage.removeItem(persistKey); } catch { /* ignore */ }
+}
+
+// Read a saved in-progress exam (or null). Used by app.js to offer "Resume".
+export function getSavedExam(key) {
+  try {
+    const raw = key && localStorage.getItem(key);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    return (s && Array.isArray(s.questions) && s.questions.length) ? s : null;
+  } catch { return null; }
+}
+export function discardSavedExam(key) {
+  try { if (key) localStorage.removeItem(key); } catch { /* ignore */ }
+}
 
 const caseIcon =
   '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:-1px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>';
@@ -19,6 +54,7 @@ const pseudo = (n) => Math.floor(Math.abs(Math.sin(n * 99.13 + 17.7) * 10000));
 export function startExam(opts) {
   const questions = opts.questions;
   onComplete = opts.onComplete;
+  persistKey = opts.persistKey ?? null;
   let order = questions.map((_, i) => i);
   if (opts.shuffle) {
     for (let i = order.length - 1; i > 0; i--) {
@@ -38,6 +74,30 @@ export function startExam(opts) {
     remaining: opts.durationSecs ?? DEFAULT_DURATION,
     source: opts.source ?? "base-19",
     round: opts.round ?? 1,
+  };
+  $("#timerPill").classList.toggle("hidden", !S.timed);
+  $("#mnavToggle").classList.remove("hidden");
+  renderQuestion();
+  startTimer();
+}
+
+// Rehydrate a saved exam (from getSavedExam) and continue where the user left off.
+export function resumeExam(opts) {
+  const saved = opts.saved;
+  onComplete = opts.onComplete;
+  persistKey = opts.persistKey ?? null;
+  S = {
+    questions: saved.questions,
+    order: saved.order ?? saved.questions.map((_, i) => i),
+    cur: saved.cur ?? 0,
+    answers: saved.answers ?? {},
+    flags: saved.flags ?? {},
+    revealed: saved.revealed ?? {},
+    timed: !!saved.timed,
+    instant: !!saved.instant,
+    remaining: saved.remaining ?? DEFAULT_DURATION,
+    source: saved.source ?? "base-19",
+    round: saved.round ?? 1,
   };
   $("#timerPill").classList.toggle("hidden", !S.timed);
   $("#mnavToggle").classList.remove("hidden");
@@ -112,6 +172,7 @@ function renderQuestion() {
 
   renderNav();
   $("#progressFill").style.width = `${((S.cur + 1) / S.questions.length) * 100}%`;
+  persist();
 }
 
 function selectOption(letter) {
@@ -218,6 +279,8 @@ function tickTimer() {
   pill.classList.remove("warn", "danger");
   if (S.remaining <= 60) pill.classList.add("danger");
   else if (S.remaining <= 300) pill.classList.add("warn");
+  // Keep the saved remaining time fresh without writing every single second.
+  if (S.remaining % 3 === 0) persist();
 }
 
 // ---- submit ----------------------------------------------------------------
@@ -231,6 +294,7 @@ function openConfirm() {
 
 function doSubmit(byTimeout) {
   clearInterval(timerInt);
+  clearPersist(); // attempt is finished — drop the in-progress autosave
   teardown();
   closeMobileNav();
 

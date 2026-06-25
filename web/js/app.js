@@ -5,10 +5,11 @@ import {
 } from "./auth.js";
 import { QUESTIONS } from "./questions.js";
 import { CASE_SETS, CASE_QUESTIONS } from "./questions-cases.js";
-import { startExam, teardown } from "./quiz-engine.js";
+import { startExam, resumeExam, getSavedExam, discardSavedExam } from "./quiz-engine.js";
 import { callCoach } from "./api.js";
 import {
   saveAttempt, saveFeedback, saveGeneratedQuestions, getHistory,
+  getAttempts, getFeedbackForAttempt,
 } from "./store.js";
 
 const $ = (s) => document.querySelector(s);
@@ -27,6 +28,27 @@ function show(name) {
 let currentUser = null;
 let lastResults = null;
 let lastAttemptRow = null;
+
+// id -> question, across the official + case-study banks. Used to reconstruct
+// the per-question review when re-opening a saved attempt.
+const QUESTION_BY_ID = new Map(
+  [...QUESTIONS, ...CASE_QUESTIONS].map((q) => [String(q.id), q]),
+);
+
+// Human label for a stored/saved `source` value.
+function setLabelFromSource(source) {
+  if (source === "base-19") return "Official sample";
+  if (source === "adaptive") return "Adaptive round";
+  if (source === "cases-all") return "All v6.1 case studies";
+  if (source === "everything") return "Everything";
+  if (typeof source === "string" && source.startsWith("case-")) {
+    return CASE_SETS.find((s) => `case-${s.key}` === source)?.name ?? "Case study";
+  }
+  return source || "Exam";
+}
+
+// Per-user localStorage key for the in-progress autosave (null when signed out).
+const inprogressKey = () => (currentUser ? `pca:inprogress:${currentUser.id}` : null);
 
 // ---------------------------------------------------------------- theme
 $("#themeToggle").addEventListener("click", () => {
@@ -99,6 +121,8 @@ onAuthChange(async (session) => {
     $("#userEmail").textContent = currentUser.email ?? "Signed in";
     show("start");
     refreshTrend();
+    refreshResume();
+    refreshPastAttempts();
   } else {
     $("#userChip").classList.add("hidden");
     show("auth");
@@ -117,6 +141,7 @@ function beginExam(questions, source, round) {
     // stuck with the full 40-minute clock.
     durationSecs: questions.length * 120,
     source, round,
+    persistKey: inprogressKey(),
     onComplete: handleComplete,
   });
 }
@@ -149,7 +174,44 @@ $("#startBtn").addEventListener("click", () => {
   const { qs, source } = resolveSet($("#setSelect")?.value || "base-19");
   beginExam(qs, source, 1);
 });
-$("#retakeBtn").addEventListener("click", () => { show("start"); refreshTrend(); });
+$("#retakeBtn").addEventListener("click", () => {
+  show("start"); refreshTrend(); refreshResume(); refreshPastAttempts();
+});
+
+// ---------------------------------------------------------------- resume in-progress
+function answeredInSaved(saved) {
+  return saved.questions.reduce((n, q) => {
+    const a = saved.answers?.[q.id] || [];
+    const done = q.type === "single" ? a.length === 1 : a.length === (q.pick || 1);
+    return n + (done ? 1 : 0);
+  }, 0);
+}
+
+function refreshResume() {
+  const card = $("#resumeCard");
+  if (!card) return;
+  const saved = getSavedExam(inprogressKey());
+  if (!saved) { card.classList.add("hidden"); return; }
+  const answered = answeredInSaved(saved);
+  const total = saved.questions.length;
+  const r = saved.remaining ?? 0;
+  const clock = saved.timed ? ` · ${Math.floor(r / 60)}:${String(r % 60).padStart(2, "0")} left` : "";
+  const roundTag = (saved.round ?? 1) > 1 ? ` · round ${saved.round}` : "";
+  $("#resumeInfo").innerHTML = `<b>${setLabelFromSource(saved.source)}</b>${roundTag} · ${answered}/${total} answered${clock}`;
+  card.classList.remove("hidden");
+}
+
+$("#resumeBtn")?.addEventListener("click", () => {
+  const key = inprogressKey();
+  const saved = getSavedExam(key);
+  if (!saved) { refreshResume(); return; }
+  show("exam");
+  resumeExam({ saved, persistKey: key, onComplete: handleComplete });
+});
+$("#discardResumeBtn")?.addEventListener("click", () => {
+  discardSavedExam(inprogressKey());
+  refreshResume();
+});
 
 // ---------------------------------------------------------------- results
 async function handleComplete(results) {
@@ -174,6 +236,8 @@ async function handleComplete(results) {
   if (!results.attemptedCount) {
     coachEl.innerHTML = `<div class="domain-card" style="text-align:center;color:var(--fg-muted)">You didn't answer any questions, so there's nothing for the AI to analyze yet. Answer at least one and you'll get coaching plus adaptive practice on your weak topics.</div>`;
     refreshTrend();
+    refreshResume();
+    refreshPastAttempts();
     return;
   }
 
@@ -206,6 +270,8 @@ async function handleComplete(results) {
     coachEl.innerHTML = coachingError("AI coaching unavailable: " + e.message);
   }
   refreshTrend();
+  refreshResume();
+  refreshPastAttempts();
 }
 
 function coachingLoading() {
@@ -373,4 +439,99 @@ function trendSvg(history) {
     <polyline points="${pts}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}
   </svg>`;
+}
+
+// ---------------------------------------------------------------- past attempts
+// Rebuild a results object from a stored attempt row. The headline numbers come
+// straight from the stored columns (robust even when a question can't be found,
+// e.g. adaptive questions that aren't kept individually); the per-question review
+// is reconstructed from the question banks for whatever ids we can resolve.
+function reconstructResults(row) {
+  const answers = row.answers || {};
+  const perQuestion = [];
+  let unresolved = 0;
+  for (const [qid, picked] of Object.entries(answers)) {
+    const q = QUESTION_BY_ID.get(String(qid));
+    if (!q) { unresolved++; continue; }
+    const a = Array.isArray(picked) ? picked : [];
+    const ok = a.length === q.correct.length && q.correct.every((c) => a.includes(c));
+    perQuestion.push({ q, picked: a, isCorrect: ok });
+  }
+  const pct = Number(row.pct);
+  return {
+    correctCount: row.score_correct,
+    total: row.score_total,
+    pct,
+    passed: pct / 100 >= PASS_MARK,
+    timeUsed: row.time_used_seconds ?? null,
+    topicBreakdown: row.topic_breakdown || [],
+    perQuestion,
+    _unresolved: unresolved,
+  };
+}
+
+// Open a saved attempt read-only: summary + topic breakdown + review + the
+// coaching that was stored at the time. No new save and no new AI call.
+async function viewAttempt(row) {
+  const results = reconstructResults(row);
+  lastResults = results;
+  renderResults(results);
+  show("results");
+
+  $("#resultsSub").innerHTML =
+    `Saved attempt from <b>${new Date(row.created_at).toLocaleString()}</b> · ${setLabelFromSource(row.source)}${(row.round ?? 1) > 1 ? ` · round ${row.round}` : ""}`;
+
+  // If some questions couldn't be resolved (adaptive), say so above the review.
+  if (results.perQuestion.length < results.total) {
+    const note = document.createElement("div");
+    note.className = "domain-card";
+    note.style.cssText = "text-align:center;color:var(--fg-muted);margin-bottom:12px";
+    note.textContent = results.perQuestion.length === 0
+      ? "Detailed review isn't available for this attempt — adaptive questions aren't stored individually. The score and topic breakdown above are exact."
+      : "Some adaptive questions in this attempt aren't stored individually, so only part of the review is shown.";
+    $("#reviewList").prepend(note);
+  }
+
+  // Re-opened attempts never re-run coaching or generate a new round.
+  $("#adaptiveBtn").classList.add("hidden");
+  const coachEl = $("#coachingPanel");
+  coachEl.innerHTML = `<div class="domain-card" style="text-align:center;color:var(--fg-muted)">Loading saved coaching…</div>`;
+  let fb = null;
+  try { fb = await getFeedbackForAttempt(currentUser.id, row.id); } catch { /* non-fatal */ }
+  if (fb) {
+    renderCoaching(fb.raw?.coaching
+      ? fb.raw
+      : { model: fb.model, coaching: { summary: fb.summary, strengths: fb.strengths, focus_areas: fb.focus_areas } });
+  } else {
+    coachEl.innerHTML = `<div class="domain-card" style="text-align:center;color:var(--fg-muted)">No saved AI coaching for this attempt.</div>`;
+  }
+}
+
+async function refreshPastAttempts() {
+  if (!currentUser) return;
+  const section = $("#attemptsSection");
+  if (!section) return;
+  let rows = [];
+  try { rows = await getAttempts(currentUser.id); } catch { section.classList.add("hidden"); return; }
+  if (!rows.length) { section.classList.add("hidden"); return; }
+  section.classList.remove("hidden");
+  $("#attemptsCount").textContent = `${rows.length} attempt${rows.length > 1 ? "s" : ""}`;
+  const list = $("#attemptsList");
+  list.innerHTML = "";
+  rows.forEach((row) => {
+    const pct = Math.round(Number(row.pct));
+    const pass = Number(row.pct) / 100 >= PASS_MARK;
+    const date = new Date(row.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    const btn = document.createElement("button");
+    btn.className = "attempt-row";
+    btn.innerHTML = `
+      <span class="attempt-score ${pass ? "pass" : "fail"}">${pct}%</span>
+      <span class="attempt-meta">
+        <span class="attempt-set">${setLabelFromSource(row.source)}${(row.round ?? 1) > 1 ? ` · round ${row.round}` : ""}</span>
+        <span class="attempt-date">${date} · ${row.score_correct}/${row.score_total} correct</span>
+      </span>
+      <svg class="attempt-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`;
+    btn.addEventListener("click", () => viewAttempt(row));
+    list.appendChild(btn);
+  });
 }

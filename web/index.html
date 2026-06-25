@@ -108,6 +108,25 @@
   .set-picker select{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);font:inherit;font-size:14.5px;font-weight:500;cursor:pointer;transition:border-color .18s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:42px;}
   .set-picker select:hover{border-color:var(--border-strong);}
   .set-picker select:focus{outline:none;border-color:var(--primary);}
+  .resume-card{max-width:640px;margin:0 auto 24px;display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding:16px 20px;background:var(--surface);border:1px solid var(--primary);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);text-align:left;}
+  .resume-card>svg{color:var(--primary);flex:none;}
+  .resume-card .resume-text{display:flex;flex-direction:column;gap:3px;flex:1;min-width:180px;}
+  .resume-card .resume-text b{font-family:'Lexend';font-size:15px;}
+  .resume-card .resume-text span{font-size:13.5px;color:var(--fg-muted);}
+  .resume-card .resume-actions{display:flex;gap:9px;}
+  .attempts-card{max-width:640px;margin:20px auto 0;padding:22px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);text-align:left;}
+  .attempts-card .trend-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  #attemptsList{display:flex;flex-direction:column;gap:8px;}
+  .attempt-row{display:flex;align-items:center;gap:14px;width:100%;padding:12px 15px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);cursor:pointer;font:inherit;text-align:left;transition:border-color .18s,transform .05s;}
+  .attempt-row:hover{border-color:var(--border-strong);}
+  .attempt-row:active{transform:scale(.997);}
+  .attempt-score{font-family:'Lexend';font-weight:700;font-size:17px;min-width:54px;}
+  .attempt-score.pass{color:var(--green-500);}
+  .attempt-score.fail{color:var(--red-500);}
+  .attempt-meta{display:flex;flex-direction:column;gap:2px;flex:1;}
+  .attempt-set{font-weight:600;font-size:14.5px;}
+  .attempt-date{font-size:12.5px;color:var(--fg-muted);}
+  .attempt-chev{color:var(--fg-subtle);flex:none;}
   .callout{margin:24px auto 0;max-width:640px;display:flex;gap:13px;padding:16px 18px;background:var(--amber-50);border:1px solid var(--gold-400);border-radius:var(--radius);text-align:left;font-size:14.5px;color:var(--fg);}
   .callout svg{flex:none;color:var(--gold-600);margin-top:1px;}
   .callout b{font-family:'Lexend';}
@@ -318,6 +337,18 @@
 
 <!-- ============ START SCREEN ============ -->
 <main id="screenStart" class="wrap hidden">
+  <div id="resumeCard" class="resume-card hidden">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+    <div class="resume-text">
+      <b>You have an exam in progress</b>
+      <span id="resumeInfo"></span>
+    </div>
+    <div class="resume-actions">
+      <button class="btn btn-primary" id="resumeBtn">Resume</button>
+      <button class="btn btn-ghost" id="discardResumeBtn">Discard</button>
+    </div>
+  </div>
+
   <section class="hero">
     <span class="badge-soft">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg>
@@ -362,6 +393,11 @@
   <div id="trendSection" class="trend-card hidden">
     <div class="trend-head"><h3>Your improvement</h3><span class="count" id="trendCount"></span></div>
     <div id="trendChart"></div>
+  </div>
+
+  <div id="attemptsSection" class="attempts-card hidden">
+    <div class="trend-head"><h3>Past attempts</h3><span class="count" id="attemptsCount"></span></div>
+    <div id="attemptsList"></div>
   </div>
 
   <div class="callout">

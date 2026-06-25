@@ -47,6 +47,32 @@ export async function saveGeneratedQuestions(userId, attemptId, questions) {
   if (error) throw error;
 }
 
+// Newest-first full attempt rows, for the "Past attempts" list + re-opening a
+// saved result (with enough data to reconstruct the per-question review).
+export async function getAttempts(userId, limit = 50) {
+  const { data, error } = await supabase
+    .from("attempts")
+    .select("id, created_at, round, source, score_correct, score_total, pct, time_used_seconds, topic_breakdown, answers")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+// The saved AI coaching for a specific attempt (latest), or null.
+export async function getFeedbackForAttempt(userId, attemptId) {
+  const { data, error } = await supabase
+    .from("ai_feedback")
+    .select("summary, strengths, focus_areas, model, raw")
+    .eq("user_id", userId)
+    .eq("attempt_id", attemptId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return data?.[0] ?? null;
+}
+
 // Oldest-first list of {pct, created_at, source} for the trend chart.
 export async function getHistory(userId, limit = 50) {
   const { data, error } = await supabase
