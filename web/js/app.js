@@ -4,6 +4,7 @@ import {
   signOut, getUser,
 } from "./auth.js";
 import { QUESTIONS } from "./questions.js";
+import { CASE_SETS, CASE_QUESTIONS } from "./questions-cases.js";
 import { startExam, teardown } from "./quiz-engine.js";
 import { callCoach } from "./api.js";
 import {
@@ -112,11 +113,42 @@ function beginExam(questions, source, round) {
     timed: $("#optTimer").checked,
     instant: $("#optInstant").checked,
     shuffle: $("#optShuffle").checked,
+    // ~2 min/question, matching the real PCA pacing, so short case sets aren't
+    // stuck with the full 40-minute clock.
+    durationSecs: questions.length * 120,
     source, round,
     onComplete: handleComplete,
   });
 }
-$("#startBtn").addEventListener("click", () => beginExam(QUESTIONS, "base-19", 1));
+
+// Resolve the start-screen picker value to a question array + source label.
+// "base-19" = official sample, "cases-all" = every case study, "everything" =
+// both, otherwise a single case (key matches CASE_SETS[].key).
+function resolveSet(value) {
+  if (value === "cases-all") return { qs: CASE_QUESTIONS, source: "cases-all" };
+  if (value === "everything") return { qs: [...QUESTIONS, ...CASE_QUESTIONS], source: "everything" };
+  const set = CASE_SETS.find((s) => s.key === value);
+  if (set) return { qs: set.questions, source: `case-${set.key}` };
+  return { qs: QUESTIONS, source: "base-19" };
+}
+
+// Keep the hero stats in sync with the chosen set (count, ~2 min/q timer, topics).
+function updateStartStats() {
+  const sel = $("#setSelect");
+  if (!sel) return;
+  const { qs } = resolveSet(sel.value);
+  const topics = new Set(qs.map((q) => q.topic)).size;
+  $("#qCountStat").textContent = qs.length;
+  $("#timerStat").innerHTML = `${qs.length * 2}<span style="font-size:14px">m</span>`;
+  $("#topicStat").textContent = topics;
+}
+$("#setSelect")?.addEventListener("change", updateStartStats);
+updateStartStats();
+
+$("#startBtn").addEventListener("click", () => {
+  const { qs, source } = resolveSet($("#setSelect")?.value || "base-19");
+  beginExam(qs, source, 1);
+});
 $("#retakeBtn").addEventListener("click", () => { show("start"); refreshTrend(); });
 
 // ---------------------------------------------------------------- results

@@ -103,6 +103,11 @@
   .chk{display:inline-flex;align-items:center;gap:10px;padding:11px 16px;border-radius:11px;border:1px solid var(--border);background:var(--surface-2);font-weight:500;font-size:14.5px;user-select:none;transition:border-color .18s,background .18s;}
   .chk:hover{border-color:var(--border-strong);}
   .chk input{width:18px;height:18px;accent-color:var(--primary);cursor:pointer;}
+  .set-picker{margin-top:24px;}
+  .set-picker label{display:block;font-size:13px;font-weight:600;color:var(--fg-muted);margin-bottom:7px;letter-spacing:.01em;}
+  .set-picker select{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface-2);color:var(--fg);font:inherit;font-size:14.5px;font-weight:500;cursor:pointer;transition:border-color .18s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:42px;}
+  .set-picker select:hover{border-color:var(--border-strong);}
+  .set-picker select:focus{outline:none;border-color:var(--primary);}
   .callout{margin:24px auto 0;max-width:640px;display:flex;gap:13px;padding:16px 18px;background:var(--amber-50);border:1px solid var(--gold-400);border-radius:var(--radius);text-align:left;font-size:14.5px;color:var(--fg);}
   .callout svg{flex:none;color:var(--gold-600);margin-top:1px;}
   .callout b{font-family:'Lexend';}
@@ -316,21 +321,33 @@
   <section class="hero">
     <span class="badge-soft">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg>
-      19 authentic cohort questions · Claude adaptive coaching
+      19 official + 32 v6.1 case-study questions · Claude adaptive coaching
     </span>
     <h1>Google Cloud Professional<br/>Cloud Architect — Mock Exam</h1>
-    <p class="lead">Take the official sample exam, then let <b>Claude Sonnet</b> analyze your mistakes, coach you, and generate fresh questions aimed at your weak topics — so you improve on every round.</p>
+    <p class="lead">Practice the official sample exam <b>or</b> the v6.1 case studies (Altostrat, Cymbal, EHR, Night Motives), then let <b>Claude Sonnet</b> analyze your mistakes, coach you, and generate fresh questions aimed at your weak topics — so you improve on every round.</p>
   </section>
 
   <div class="info-card">
     <div class="stat-row">
-      <div class="stat"><div class="num">19</div><div class="lbl">Questions</div></div>
+      <div class="stat"><div class="num" id="qCountStat">19</div><div class="lbl">Questions</div></div>
       <div class="stat"><div class="num">70%</div><div class="lbl">Pass mark</div></div>
-      <div class="stat"><div class="num">40<span style="font-size:14px">m</span></div><div class="lbl">Timer</div></div>
-      <div class="stat"><div class="num">6</div><div class="lbl">Topics</div></div>
+      <div class="stat"><div class="num" id="timerStat">40<span style="font-size:14px">m</span></div><div class="lbl">Timer</div></div>
+      <div class="stat"><div class="num" id="topicStat">6</div><div class="lbl">Topics</div></div>
+    </div>
+    <div class="set-picker">
+      <label for="setSelect">Question set</label>
+      <select id="setSelect">
+        <option value="base-19">Official sample questions (19)</option>
+        <option value="cases-all">v6.1 case studies — all (32)</option>
+        <option value="altostrat">&nbsp;&nbsp;· Altostrat Media (8)</option>
+        <option value="cymbal">&nbsp;&nbsp;· Cymbal Retail (8)</option>
+        <option value="ehr">&nbsp;&nbsp;· EHR Healthcare (8)</option>
+        <option value="night">&nbsp;&nbsp;· Night Motives Automotive (8)</option>
+        <option value="everything">Everything (51)</option>
+      </select>
     </div>
     <div class="opt-toggle-row">
-      <label class="chk"><input type="checkbox" id="optTimer" checked /> Timed (40:00)</label>
+      <label class="chk"><input type="checkbox" id="optTimer" checked /> Timed (~2 min/question)</label>
       <label class="chk"><input type="checkbox" id="optShuffle" /> Shuffle questions</label>
       <label class="chk"><input type="checkbox" id="optInstant" /> Reveal answer after each</label>
     </div>
@@ -349,7 +366,7 @@
 
   <div class="callout">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-    <div><b>Note on exam version.</b> These are official Google PCA sample questions. The current exam (v6.1, Oct 30 2025) retired the Mountkirk Games, Helicopter Racing League & TerramEarth case studies and now centers on generative AI (Gemini) — the legacy-case questions are kept because the architecture concepts still transfer. Adaptive rounds focus on your weak topics.</div>
+    <div><b>Note on exam version.</b> The current exam (v6.1, Oct 30 2025) retired the Mountkirk Games, Helicopter Racing League &amp; TerramEarth case studies and now centers on generative AI (Gemini), with the <b>Altostrat Media</b>, <b>Cymbal Retail</b>, <b>EHR Healthcare</b> &amp; <b>Night Motives Automotive</b> case studies. The official 19 sample questions are kept (architecture concepts still transfer); the v6.1 case-study sets map each case requirement to the right GCP managed service following the Well-Architected Framework. Pick a set above. Adaptive rounds focus on your weak topics.</div>
   </div>
 </main>
 
