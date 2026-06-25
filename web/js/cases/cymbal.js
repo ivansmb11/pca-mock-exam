@@ -1,4 +1,4 @@
-// Cymbal Retail - questions grounded in case requirements, mapped to GCP managed services and the Well-Architected Framework.
+// Cymbal Retail - questions grounded in case requirements, mapped to current GCP managed services and the Well-Architected Framework.
 
 export const CYMBAL_QUESTIONS = [
   {
@@ -6,19 +6,19 @@ export const CYMBAL_QUESTIONS = [
     topic: "Migration & Modernization",
     case: "Cymbal Retail",
     type: "single",
-    text: "To modernize Cymbal's databases, the team must move its on-prem MySQL and Microsoft SQL Server instances to managed Google Cloud services with minimal downtime. Which approach best meets this requirement?",
+    text: "Cymbal must move its on-prem MySQL and Microsoft SQL Server instances to managed Google Cloud databases while keeping cutover downtime minimal. Which approach best meets this requirement?",
     options: {
-      A: "Use Database Migration Service to perform continuous, near-zero-downtime migrations into Cloud SQL for MySQL and Cloud SQL for SQL Server.",
-      B: "Export both databases to CSV files, copy them to Cloud Storage, and load them into BigQuery during a weekend maintenance window.",
-      C: "Lift-and-shift both database engines onto self-managed Compute Engine VMs and patch them manually.",
-      D: "Re-platform both databases onto Bigtable to gain a fully managed NoSQL store."
+      A: "Use Datastream to stream both engines into BigQuery, then point the storefront at BigQuery as its new transactional backend after cutover.",
+      B: "Use Database Migration Service for a snapshot plus continuous replication into Cloud SQL for MySQL and Cloud SQL for SQL Server.",
+      C: "Use Storage Transfer Service to copy nightly database dumps into Cloud Storage and reload them into fresh Cloud SQL instances daily.",
+      D: "Use a Dataflow batch job to export full table extracts and bulk-load them into Cloud SQL during one extended maintenance window."
     },
-    correct: ["A"],
+    correct: ["B"],
     why: {
-      A: "Database Migration Service is serverless and supports MySQL and SQL Server with an initial snapshot plus continuous replication, giving near-zero downtime into the matching managed Cloud SQL engines (Reliability and Operational Excellence).",
-      B: "BigQuery is an analytics warehouse, not a transactional replacement, and a CSV bulk load forces a long outage instead of continuous replication.",
-      C: "Self-managed VMs keep the operational burden of patching, backups, and HA that managed services should remove.",
-      D: "Bigtable is a wide-column NoSQL store that cannot serve relational MySQL or SQL Server workloads without a full application rewrite."
+      A: "BigQuery is an analytics warehouse and cannot serve the relational transactional reads and writes the storefront depends on.",
+      B: "Database Migration Service runs a serverless snapshot plus continuous CDC into the matching managed Cloud SQL engines for near-zero downtime (Operational Excellence and Reliability).",
+      C: "Reloading dumps daily leaves long replication gaps and forces an outage on every reload rather than continuous catch-up.",
+      D: "A one-shot bulk export forces a long maintenance window instead of the continuous replication a low-downtime cutover needs."
     }
   },
   {
@@ -26,19 +26,19 @@ export const CYMBAL_QUESTIONS = [
     topic: "Data & Analytics",
     case: "Cymbal Retail",
     type: "single",
-    text: "Cymbal's MongoDB document data must move to a fully managed Google Cloud database while preserving existing MongoDB application code, and the cutover should use ongoing change data capture to limit downtime. Which combination should the architect choose?",
+    text: "Cymbal's MongoDB document data must land in a fully managed Google Cloud database that keeps existing MongoDB application code working, using change data capture so cutover downtime stays low. Which approach should the architect choose?",
     options: {
-      A: "Migrate to Cloud SQL for PostgreSQL and rewrite all document queries as relational joins.",
-      B: "Migrate to Firestore with MongoDB compatibility, using Datastream change data capture to replicate ongoing writes until cutover.",
-      C: "Store the documents as JSON files in Cloud Storage and query them with the gsutil command line.",
-      D: "Migrate the documents into Memorystore for Redis to keep them in memory."
+      A: "Move the documents into Memorystore for Redis and replicate ongoing changes with its built-in MongoDB change-stream connector.",
+      B: "Migrate to Cloud SQL for PostgreSQL and replicate the ongoing writes with Database Migration Service until the cutover completes.",
+      C: "Stand up self-managed MongoDB on Compute Engine and replicate writes with a scheduled mongodump and mongorestore job pair.",
+      D: "Migrate to Firestore with MongoDB compatibility, using Datastream change data capture to replicate ongoing writes until cutover."
     },
-    correct: ["B"],
+    correct: ["D"],
     why: {
-      A: "Forcing document data into a relational schema requires a costly rewrite and abandons the MongoDB compatibility Cymbal wants to keep.",
-      B: "Firestore with MongoDB compatibility is serverless and lets existing MongoDB code keep working, while Datastream provides serverless CDC for a low-downtime cutover (Operational Excellence and Reliability).",
-      C: "Cloud Storage holds objects, not a queryable operational document database, so application read and write patterns would break.",
-      D: "Memorystore for Redis is a volatile cache, not a durable system of record for the product catalog documents."
+      A: "Memorystore for Redis is a volatile cache, not a durable document system of record, and has no MongoDB change-stream connector.",
+      B: "Cloud SQL for PostgreSQL is relational and would force rewriting the document queries the MongoDB code relies on.",
+      C: "Self-managed MongoDB keeps the patching and HA burden, and dump-restore jobs cannot provide continuous low-downtime CDC.",
+      D: "Firestore with MongoDB compatibility keeps existing MongoDB code working while Datastream gives serverless CDC for a low-downtime cutover (Operational Excellence and Reliability)."
     }
   },
   {
@@ -46,19 +46,19 @@ export const CYMBAL_QUESTIONS = [
     topic: "AI & ML",
     case: "Cymbal Retail",
     type: "single",
-    text: "For the Attribute Generation requirement, Cymbal must automatically derive structured product attributes from supplier titles, descriptions, and images so they align with the existing catalog taxonomy. Which managed service best fits?",
+    text: "For Attribute Generation, Cymbal must derive structured product attributes from supplier titles, descriptions, and images so they align with the existing catalog taxonomy. Which managed approach best fits?",
     options: {
-      A: "Train a custom convolutional neural network from scratch on Compute Engine GPUs for every product sub-vertical.",
-      B: "Use Cloud Natural Language entity analysis alone to tag each supplier description.",
-      C: "Use a multimodal Gemini model on Vertex AI, prompted with the catalog schema, to extract attributes from supplier text and images.",
-      D: "Apply a fixed set of regular expressions in a Cloud Run service to parse supplier titles."
+      A: "Use a multimodal Gemini model on Vertex AI, prompted with the taxonomy, to extract aligned attributes from supplier text and images.",
+      B: "Use Cloud Natural Language entity and category analysis on each supplier title and product description to tag the catalog attributes.",
+      C: "Use the Cloud Vision API to label the supplier images and map each returned label onto the existing catalog attribute fields.",
+      D: "Use AutoML to train one tabular classifier per sub-vertical on the past listings to predict the relevant catalog attributes for new items."
     },
-    correct: ["C"],
+    correct: ["A"],
     why: {
-      A: "Building and maintaining bespoke models per sub-vertical is slow and expensive when a managed foundation model already handles the task.",
-      B: "Cloud Natural Language reads text only and cannot interpret the supplier images that the requirement explicitly includes.",
-      C: "A multimodal Gemini model on Vertex AI reads both text and images and can be prompted with Cymbal's taxonomy to emit aligned structured attributes (Performance Optimization and Operational Excellence).",
-      D: "Regex cannot generalize across a huge, varied catalog or interpret images, so accuracy and consistency would suffer."
+      A: "A multimodal Gemini model reads both text and images and can be prompted with the taxonomy to emit aligned structured attributes (Performance Optimization and Operational Excellence).",
+      B: "Cloud Natural Language reads text only, so it cannot interpret the supplier images the requirement explicitly includes.",
+      C: "Cloud Vision labels images only and ignores the supplier text, missing attributes carried in titles and descriptions.",
+      D: "Training a model per sub-vertical is slow and costly to maintain when a managed foundation model already covers the task."
     }
   },
   {
@@ -66,19 +66,19 @@ export const CYMBAL_QUESTIONS = [
     topic: "AI & ML",
     case: "Cymbal Retail",
     type: "single",
-    text: "The Image Generation and Enhancement requirement calls for creating color variations from a base product image, replacing backgrounds, adjusting product color, and adding text overlays. Which Google Cloud capability should the architect select?",
+    text: "Image Generation and Enhancement requires creating color variations from a base product image, replacing backgrounds, adjusting product color, and adding text overlays. Which Google Cloud capability should the architect select?",
     options: {
-      A: "Imagen on Vertex AI, using its image generation and editing features such as masked background replacement and image variation.",
-      B: "Cloud Vision API label detection to read what is already in each product photo.",
-      C: "A Dataflow pipeline that resizes and compresses the existing images.",
-      D: "Cloud CDN to cache the supplier-provided images closer to shoppers."
+      A: "Use the Cloud Vision API to detect objects and colors so the team knows which regions of each product photo to edit manually by hand.",
+      B: "Use a Dataflow pipeline to recolor, recompose, and overlay text on the existing images at scale across the product catalog.",
+      C: "Use Imagen on Vertex AI for generative image variation and mask-based editing like background replacement and color changes.",
+      D: "Use Cloud CDN to cache transformed product images at the edge so each requested variation is delivered quickly to shoppers."
     },
-    correct: ["A"],
+    correct: ["C"],
     why: {
-      A: "Imagen on Vertex AI is the managed generative image model that supports variations, background and color edits via masking, and overlays, matching every part of the requirement (Performance Optimization).",
-      B: "Cloud Vision only analyzes existing images and cannot generate new variations or edit backgrounds.",
-      C: "Dataflow can transform pixels mechanically but cannot generate new colorways or replace backgrounds with generative AI.",
-      D: "Cloud CDN only caches and delivers images; it creates nothing new."
+      A: "Cloud Vision only analyzes existing images and generates no new variations or background replacements.",
+      B: "Dataflow can transform pixels mechanically but cannot generate new colorways or replace backgrounds with generative AI.",
+      C: "Imagen on Vertex AI is the managed generative image model for variation, masked background and color edits, and overlays (Performance Optimization).",
+      D: "Cloud CDN only caches and delivers existing images and creates no new variations of its own."
     }
   },
   {
@@ -86,19 +86,21 @@ export const CYMBAL_QUESTIONS = [
     topic: "AI & ML",
     case: "Cymbal Retail",
     type: "single",
-    text: "To Automate Product Discovery, Cymbal needs to process natural-language shopper requests on its website and app and return highly relevant products, with personalized guided conversations. Which Google Cloud service is the best fit?",
+    text: "To Automate Product Discovery, Cymbal needs to process natural-language shopper requests on its website and app and return highly relevant products through personalized, guided conversations. Which Google Cloud service is the best fit?",
     options: {
-      A: "Build a keyword index in Elasticsearch on GKE and rank results by exact string match.",
-      B: "Use Vertex AI Search for commerce with its Conversational Commerce agent for retail-tuned, natural-language product discovery.",
-      C: "Run a BigQuery LIKE query against the product table for each shopper search.",
-      D: "Expose the relational catalog through Cloud SQL full-text search."
+      A: "Run BigQuery vector embeddings over the catalog and return the nearest matching products for each natural-language shopper query.",
+      B: "Self-host Elasticsearch on GKE with a semantic plugin and rank the catalog results for each shopper request by relevance score.",
+      C: "Use Conversational Agents (Dialogflow CX) flows to interpret shopper intent and look up the matching products in the catalog database.",
+      D: "Use Cloud SQL full-text search across product names and descriptions to return matches for each natural-language shopper query.",
+      E: "Use Vertex AI Search for commerce with its Conversational Commerce agent for retail-tuned, personalized natural-language search."
     },
-    correct: ["B"],
+    correct: ["E"],
     why: {
-      A: "Self-managed Elasticsearch adds operational overhead and keyword matching alone misses the semantic, personalized retail relevance Cymbal needs.",
-      B: "Vertex AI Search for commerce is purpose-built for retail relevance and its Conversational Commerce agent handles natural-language, personalized guided discovery as a managed service (Performance Optimization and Operational Excellence).",
-      C: "A BigQuery LIKE scan is an analytics pattern with poor latency and no relevance ranking for live shopper search.",
-      D: "Cloud SQL full-text search lacks the retail-tuned ranking, personalization, and conversational understanding required."
+      A: "BigQuery vector search is an analytics pattern with batch latency and no retail ranking or guided conversation for live shoppers.",
+      B: "Self-hosted Elasticsearch adds operational overhead and still lacks the retail-tuned personalization and guided dialogue Cymbal needs.",
+      C: "Dialogflow CX handles dialogue but is not a retail relevance engine, so product ranking quality would fall short.",
+      D: "Cloud SQL full-text search has no retail ranking, personalization, or conversational understanding for shopper discovery.",
+      E: "Vertex AI Search for commerce is purpose-built for retail relevance and its Conversational Commerce agent delivers personalized guided discovery as a managed service (Performance Optimization and Operational Excellence)."
     }
   },
   {
@@ -106,19 +108,19 @@ export const CYMBAL_QUESTIONS = [
     topic: "Compute & Containers",
     case: "Cymbal Retail",
     type: "single",
-    text: "The Scalability and Performance requirement says the storefront on GKE must absorb holiday traffic spikes without degrading the user experience. Which GKE configuration best delivers elastic scaling while controlling cost?",
+    text: "Scalability and Performance requires the storefront on GKE to absorb holiday traffic spikes without degrading the shopper experience while still controlling cost the rest of the year. Which GKE configuration best delivers this?",
     options: {
-      A: "Provision a large fixed number of nodes sized for peak and leave them running all year.",
-      B: "Use only manual kubectl scale commands during holiday periods.",
-      C: "Combine the Horizontal Pod Autoscaler with cluster autoscaler and node auto-provisioning so pods and nodes scale with demand.",
-      D: "Move the storefront to a single large Compute Engine VM and scale it vertically at peak."
+      A: "Provision a fixed pool sized for peak and keep every node running all year so capacity is always ready for the next spike.",
+      B: "Combine the Horizontal Pod Autoscaler with cluster autoscaler and node auto-provisioning so pods and nodes scale on demand.",
+      C: "Schedule a cron job to scale node pools up before each known holiday window and scale them back down once the window has passed.",
+      D: "Run the storefront on one large Compute Engine VM and resize its machine type vertically whenever traffic begins to climb at peak times."
     },
-    correct: ["C"],
+    correct: ["B"],
     why: {
-      A: "Statically sizing for peak wastes money during normal traffic and still risks running out of headroom beyond the fixed cap.",
-      B: "Manual scaling is error-prone and slow, so sudden spikes degrade the experience before an operator reacts.",
-      C: "HPA scales pods on demand, cluster autoscaler adds nodes when pods are pending, and node auto-provisioning creates right-sized node pools, giving elastic scaling that contracts to save cost (Reliability and Cost Optimization).",
-      D: "A single VM is a scaling and availability bottleneck and cannot match the elasticity of an autoscaling GKE cluster."
+      A: "Sizing statically for peak wastes money in normal periods and still caps out if demand exceeds the fixed pool.",
+      B: "HPA scales pods, cluster autoscaler adds nodes for pending pods, and node auto-provisioning right-sizes pools, scaling elastically then contracting to save cost (Reliability and Cost Optimization).",
+      C: "Scheduled scaling only handles known windows and misses unplanned surges, degrading the experience until the next cron run.",
+      D: "A single VM is a scaling and availability bottleneck and cannot match an autoscaling GKE cluster's elasticity."
     }
   },
   {
@@ -130,18 +132,18 @@ export const CYMBAL_QUESTIONS = [
     text: "Beyond compute autoscaling, Cymbal wants its global storefront to stay fast and protected during peak events while reducing origin load. Which TWO managed Google Cloud services should the architect add at the edge?",
     options: {
       A: "Enable Cloud CDN on the global external Application Load Balancer to cache catalog content near shoppers worldwide.",
-      B: "Attach Google Cloud Armor to the load balancer for DDoS protection and WAF rules during high-traffic events.",
-      C: "Place a single regional network load balancer in one region to front all global traffic.",
-      D: "Run a self-managed NGINX reverse proxy fleet on Compute Engine for caching.",
-      E: "Disable TLS termination at the edge to lower CPU usage on the load balancer."
+      B: "Front all of the global traffic with one regional external network load balancer placed close to the data center region.",
+      C: "Attach Google Cloud Armor to the load balancer for managed DDoS protection and WAF rules during the peak events.",
+      D: "Deploy a self-managed NGINX caching proxy fleet on Compute Engine managed instance groups in front of the origin.",
+      E: "Move TLS termination off the edge and onto the backend storefront pods to lower CPU usage on the global load balancer."
     },
-    correct: ["A", "B"],
+    correct: ["A", "C"],
     why: {
       A: "Cloud CDN on the global external Application Load Balancer caches content at Google's edge, cutting latency and offloading the origin during spikes (Performance Optimization and Cost Optimization).",
-      B: "Google Cloud Armor provides managed DDoS defense and WAF policies that keep the storefront available and secure under peak or attack traffic (Reliability and Security).",
-      C: "A single regional load balancer cannot serve a global audience with low latency and becomes a single point of failure.",
+      B: "A single regional load balancer cannot serve a global audience with low latency and is a single point of failure.",
+      C: "Google Cloud Armor adds managed DDoS defense and WAF policies that keep the storefront available and secure under peak or attack traffic (Reliability and Security).",
       D: "A self-managed proxy fleet reintroduces the operational burden that managed Cloud CDN removes.",
-      E: "Disabling TLS termination weakens security and breaks encrypted shopper sessions, violating data protection goals."
+      E: "Pushing TLS to backend pods adds origin load and weakens edge protection rather than relieving the storefront."
     }
   },
   {
@@ -150,21 +152,21 @@ export const CYMBAL_QUESTIONS = [
     case: "Cymbal Retail",
     type: "multi",
     pick: 2,
-    text: "The Data Security and Compliance requirement means all customer data and virtual-agent interactions must be handled securely and meet industry regulations. Which TWO practices best satisfy this on Google Cloud?",
+    text: "Data Security and Compliance means all customer data and virtual-agent interactions must be handled securely and meet industry regulations. Which TWO practices best satisfy this on Google Cloud?",
     options: {
-      A: "Use Sensitive Data Protection (Cloud DLP) to discover and de-identify sensitive customer data before it is stored or sent to AI models.",
-      B: "Store database credentials and API keys in Secret Manager and grant access through least-privilege IAM roles.",
-      C: "Embed API keys directly in the web application source code so services can authenticate quickly.",
-      D: "Grant the broad Editor role to every service account to avoid permission errors during launch.",
-      E: "Email exports of the full customer table to associates for manual HITL review."
+      A: "Store credentials and API keys in the application source and rotate them on each release so services authenticate without delay.",
+      B: "Use Sensitive Data Protection to discover and de-identify sensitive customer data before it is stored or sent to the AI models.",
+      C: "Grant the broad Editor role to every service account so launch is not blocked by missing permissions during the rollout.",
+      D: "Keep credentials and API keys in Secret Manager and grant access only through least-privilege IAM roles scoped per service.",
+      E: "Export the full customer table to a shared Cloud Storage bucket so associates can review records during HITL approval steps."
     },
-    correct: ["A", "B"],
+    correct: ["B", "D"],
     why: {
-      A: "Sensitive Data Protection inspects and de-identifies PII before storage or model use, meeting privacy and compliance obligations (Security, Privacy and Compliance).",
-      B: "Secret Manager plus least-privilege IAM keeps credentials out of code and limits blast radius if an identity is compromised (Security, Privacy and Compliance).",
-      C: "Hardcoding keys in source code exposes secrets in version control and is a serious security violation.",
-      D: "The Editor role grants far more access than needed and breaks the least-privilege principle.",
-      E: "Emailing full customer exports leaks regulated data and bypasses secure access controls."
+      A: "Embedding keys in source exposes secrets in version control and is a serious security violation regardless of rotation.",
+      B: "Sensitive Data Protection inspects and de-identifies PII before storage or model use, meeting privacy and compliance obligations (Security, Privacy and Compliance).",
+      C: "The Editor role grants far more access than any service needs and breaks the least-privilege principle.",
+      D: "Secret Manager plus least-privilege IAM keeps credentials out of code and limits blast radius if an identity is compromised (Security, Privacy and Compliance).",
+      E: "Exporting the full table to a shared bucket leaks regulated data and bypasses scoped access controls."
     }
   }
 ];
