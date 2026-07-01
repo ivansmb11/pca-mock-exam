@@ -5,6 +5,7 @@ import {
 } from "./auth.js";
 import { QUESTIONS } from "./questions.js";
 import { CASE_SETS, CASE_QUESTIONS } from "./questions-cases.js";
+import { TOPIC_SETS, TOPIC_QUESTIONS } from "./questions-topics.js";
 import { startExam, resumeExam, getSavedExam, discardSavedExam } from "./quiz-engine.js";
 import { callCoach } from "./api.js";
 import {
@@ -29,10 +30,10 @@ let currentUser = null;
 let lastResults = null;
 let lastAttemptRow = null;
 
-// id -> question, across the official + case-study banks. Used to reconstruct
-// the per-question review when re-opening a saved attempt.
+// id -> question, across the official + case-study + topic banks. Used to
+// reconstruct the per-question review when re-opening a saved attempt.
 const QUESTION_BY_ID = new Map(
-  [...QUESTIONS, ...CASE_QUESTIONS].map((q) => [String(q.id), q]),
+  [...QUESTIONS, ...CASE_QUESTIONS, ...TOPIC_QUESTIONS].map((q) => [String(q.id), q]),
 );
 
 // Human label for a stored/saved `source` value.
@@ -43,6 +44,9 @@ function setLabelFromSource(source) {
   if (source === "everything") return "Everything";
   if (typeof source === "string" && source.startsWith("case-")) {
     return CASE_SETS.find((s) => `case-${s.key}` === source)?.name ?? "Case study";
+  }
+  if (typeof source === "string" && source.startsWith("topic-")) {
+    return TOPIC_SETS.find((s) => `topic-${s.key}` === source)?.name ?? "Study set";
   }
   return source || "Exam";
 }
@@ -148,12 +152,17 @@ function beginExam(questions, source, round) {
 
 // Resolve the start-screen picker value to a question array + source label.
 // "base-19" = official sample, "cases-all" = every case study, "everything" =
-// both, otherwise a single case (key matches CASE_SETS[].key).
+// all banks, otherwise a single case (CASE_SETS[].key) or topic set
+// (TOPIC_SETS[].key).
 function resolveSet(value) {
   if (value === "cases-all") return { qs: CASE_QUESTIONS, source: "cases-all" };
-  if (value === "everything") return { qs: [...QUESTIONS, ...CASE_QUESTIONS], source: "everything" };
-  const set = CASE_SETS.find((s) => s.key === value);
-  if (set) return { qs: set.questions, source: `case-${set.key}` };
+  if (value === "everything") {
+    return { qs: [...QUESTIONS, ...CASE_QUESTIONS, ...TOPIC_QUESTIONS], source: "everything" };
+  }
+  const caseSet = CASE_SETS.find((s) => s.key === value);
+  if (caseSet) return { qs: caseSet.questions, source: `case-${caseSet.key}` };
+  const topicSet = TOPIC_SETS.find((s) => s.key === value);
+  if (topicSet) return { qs: topicSet.questions, source: `topic-${topicSet.key}` };
   return { qs: QUESTIONS, source: "base-19" };
 }
 
